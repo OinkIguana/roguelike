@@ -8,7 +8,7 @@ namespace Game {
     class Room;
 
     struct Cell {
-        enum class Type { Empty = ' ', Room = '.', Hall = '#', WallH = '-', WallV = '|', Door = '+' };
+        enum class Type { Empty = ' ', Room = '.', Hall = '#', WallH = '-', WallV = '|', Corner = '+', Door = '=' };
         Type type = Type::Empty;
         int x, y;
         int visibility = 0;

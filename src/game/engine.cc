@@ -36,7 +36,8 @@ namespace Game {
 
             // update the display
             view->redraw();
-        } while(cmd);
+            map = nullptr;
+        } while(true || cmd);
 
         // end the game
 

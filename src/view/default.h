@@ -13,6 +13,7 @@ namespace View {
 
         std::function<Game::Command()> state = [this] () { return character_select(); };
         std::string map;
+        std::string objects;
     public:
         Default();
         ~Default();

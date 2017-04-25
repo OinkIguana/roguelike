@@ -398,7 +398,28 @@ namespace Game {
                 return a + static_cast<char>(cell->type);
             }) + "\n";
         });
-        std::cerr << x;
         return x;
+    }
+
+    std::string Map::object_string() const {
+        std::string x = std::accumulate(cells.begin(), cells.end(), std::string(), [](std::string a, auto row) {
+            return a + std::accumulate(row.begin(), row.end(), std::string(), [](std::string a, auto cell) {
+                return a + (cell->contents ? cell->contents->symbol() : ' ');
+            }) + "\n";
+        });
+        return x;
+    }
+
+    std::shared_ptr<Room> Map::choose_room() const {
+        std::shared_ptr<Room> rm;
+        std::uniform_int_distribution<int> rr(0, rooms.size() - 1);
+        do {
+            rm = rooms[rr(rng)];
+        } while(rm->full());
+        return rm;
+    }
+
+    std::shared_ptr<Cell> Map::cell_at(int x, int y) const {
+        return cells[y][x];
     }
 }

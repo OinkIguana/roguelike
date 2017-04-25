@@ -5,6 +5,11 @@
 #include "info.h"
 #include "map.h"
 
+#include "objects/characters/player.h"
+#include "objects/exit.h"
+
+#include <iostream>
+
 namespace Game {
     Engine::Engine(std::shared_ptr<View> view) : view{ view } {}
 
@@ -18,26 +23,49 @@ namespace Game {
         do {
             cmd = view->command();
             if(cmd.type == CommandType::CharacterSelect) {
-                info->race = cmd.character;
+                info->race = cmd.data.character;
             } else if(cmd.type == CommandType::Quit) { return 0; }
         } while(cmd.type != CommandType::CharacterSelect);
 
         // play the game
+        bool level_complete = true;
         do {
-            if(!map) {
+            if(level_complete) {
+                level_complete = false;
                 // create new level
                 map = std::make_shared<Map>(++info->level);
-                view->update(Game::Update{ UpdateType::MapChange, map.get() });
+                // populate
+                player = map->create<Player>();
+                map->create_avoiding<Exit>(player, [&level_complete] () { level_complete = true; });
+            } else {
+                // update the map
+                switch(cmd.type) {
+                case CommandType::Move: {
+                    int x = player->x, y = player->y;
+                    switch(cmd.data.direction) {
+                        case Direction::Up:     y -= 1; break;
+                        case Direction::Down:   y += 1; break;
+                        case Direction::Left:   x -= 1; break;
+                        case Direction::Right:  x += 1; break;
+                    }
+                    auto cell = map->cell_at(x, y);
+                    if(cell->available()) {
+                        auto thing = cell->contents;
+                        if(thing) thing->collect(player);
+                        map->cell_at(player->x, player->y)->clear();
+                        cell->set_contents(player);
+                    }
+                }   break;
+                default: ;
+                }
+                if(level_complete) continue;
             }
+            // update the display
+            view->update(Game::Update{ UpdateType::MapChange, map.get() });
+            view->redraw();
             // process player input
             cmd = view->command();
-
-            // update the map
-
-            // update the display
-            view->redraw();
-            map = nullptr;
-        } while(true || cmd);
+        } while(cmd);
 
         // end the game
 

@@ -6,11 +6,15 @@
 
 namespace Game {
     class Cell;
+    class Object;
 
     class Room {
         std::vector<std::shared_ptr<Cell>> cells;
     public:
         Room(std::vector<std::shared_ptr<Cell>>);
+        std::shared_ptr<Cell> choose_cell() const;
+        bool contains(std::shared_ptr<Object>) const;
+        bool full() const;
     };
 }
 

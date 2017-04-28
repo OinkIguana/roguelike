@@ -1,16 +1,14 @@
 #include "map.h"
 #include "cell.h"
 #include "room.h"
+#include "random.h"
 
 #include <functional>
 #include <cmath>
 #include <algorithm>
-#include <random>
 #include <numeric>
 #include <iostream>
 #include <array>
-
-std::default_random_engine rng;
 
 // flood fills a continuous section of a grid[y][x]-like data structure with v
 //  given a predicate
@@ -422,4 +420,31 @@ namespace Game {
     std::shared_ptr<Cell> Map::cell_at(int x, int y) const {
         return cells[y][x];
     }
+
+    Map::Iterator Map::begin() {
+        return Iterator(0, 0, *this);
+    }
+
+    Map::Iterator Map::end() {
+        return Iterator(0, h, *this);
+    }
+
+    Map::Iterator::Iterator(int x, int y, Map & map) : x{x}, y{y}, map{map} {}
+    Map::Iterator Map::Iterator::operator++() {
+        ++x;
+        if(x == map.w) {
+            x = 0;
+            ++y;
+        }
+        return *this;
+    }
+
+    bool Map::Iterator::operator!=(Map::Iterator& o) {
+        return !(x == o.x && y == o.y && &map == &o.map);
+    }
+
+    Cell& Map::Iterator::operator*() {
+        return *map.cells[y][x];
+    }
+
 }

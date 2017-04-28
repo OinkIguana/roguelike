@@ -8,7 +8,7 @@
 namespace Game {
     class Room;
 
-    struct Cell {
+    struct Cell : std::enable_shared_from_this<Cell> {
         enum class Type { Empty = ' ', Room = '.', Hall = '#', WallH = '-', WallV = '|', Corner = '+', Door = '=' };
         Type type = Type::Empty;
         int x, y;
@@ -21,7 +21,7 @@ namespace Game {
         void clear();
 
         bool open(bool = true, bool = true, bool = true) const;
-        bool available(bool = true, bool = true, bool = true, bool = true) const;
+        bool available(std::shared_ptr<Object>, bool = true, bool = true, bool = true, bool = true) const;
     };
 }
 

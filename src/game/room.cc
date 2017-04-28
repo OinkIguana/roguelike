@@ -1,9 +1,8 @@
 #include "room.h"
 #include "cell.h"
-#include <random>
+#include "random.h"
 
 namespace Game {
-    std::default_random_engine rng;
     Room::Room(std::vector<std::shared_ptr<Cell>> cells) : cells{ cells } {}
 
     bool Room::contains(std::shared_ptr<Object> obj) const {
@@ -29,7 +28,7 @@ namespace Game {
         std::uniform_int_distribution<int> rc(0, cells.size() - 1);
         do {
             cl = cells[rc(rng)];
-        } while(!cl->available(true, false, false, false));
+        } while(!cl->available(nullptr, true, false, false, false));
         return cl;
     }
 }

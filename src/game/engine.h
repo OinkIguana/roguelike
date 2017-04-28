@@ -7,7 +7,9 @@ namespace Game {
     class View;
     class Map;
     class Player;
+    class Object;
     struct Info;
+    struct Command;
 
     class Engine {
         std::shared_ptr<View> view;
@@ -15,6 +17,7 @@ namespace Game {
         std::shared_ptr<Map> map;
 
         std::shared_ptr<Player> player;
+        bool proc(Command, std::shared_ptr<Object>, bool = false);
     public:
         Engine(std::shared_ptr<View>);
         int start();

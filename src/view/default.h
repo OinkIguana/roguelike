@@ -11,6 +11,8 @@ namespace View {
         Game::Command character_select();
         Game::Command world_view();
 
+        Game::Direction last_direction;
+
         std::function<Game::Command()> state = [this] () { return character_select(); };
         std::string map;
         std::string objects;

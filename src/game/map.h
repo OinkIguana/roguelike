@@ -26,6 +26,21 @@ namespace Game {
         template<typename T, typename ... Args>
         std::shared_ptr<T> create_avoiding(std::shared_ptr<Object>, Args ... args);
         std::shared_ptr<Cell> cell_at(int, int) const;
+
+        class Iterator {
+            friend class Map;
+            int x, y;
+            Map & map;
+            Iterator(int x, int y, Map &);
+        public:
+            Iterator operator++();
+            Cell& operator*();
+            bool operator!=(Iterator&);
+        };
+
+        // cell iteration
+        Iterator begin();
+        Iterator end();
     };
 
     template<typename T, typename ... Args>

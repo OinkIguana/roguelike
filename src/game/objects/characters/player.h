@@ -6,8 +6,9 @@
 namespace Game {
     class Player : public Object {
     public:
-        virtual char symbol() const override { return '@'; }
-        virtual bool attackable() const override { return true; }
+        Player();
+        virtual char symbol() const override;
+        virtual bool attackable(std::shared_ptr<Object>) const override;
     };
 }
 

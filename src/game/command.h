@@ -8,6 +8,7 @@ namespace Game {
         Interact,
         Item,
         Attack,
+        Idle,
         Quit
     };
 
@@ -25,6 +26,7 @@ namespace Game {
             CharacterType character;
             Direction direction;
         } data;
+
         inline operator bool () const noexcept {
             return type != CommandType::Quit;
         }

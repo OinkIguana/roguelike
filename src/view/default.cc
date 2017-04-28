@@ -41,21 +41,33 @@ namespace View {
         case KEY_UP:
         case 'W':
         case 'w':
+            last_direction = Game::Direction::Up;
             return Game::Command{ Game::CommandType::Move, Game::Direction::Up };
         case KEY_DOWN:
         case 'S':
         case 's':
+            last_direction = Game::Direction::Down;
             return Game::Command{ Game::CommandType::Move, Game::Direction::Down };
         case KEY_RIGHT:
         case 'D':
         case 'd':
+            last_direction = Game::Direction::Right;
             return Game::Command{ Game::CommandType::Move, Game::Direction::Right };
         case KEY_LEFT:
         case 'A':
         case 'a':
+            last_direction = Game::Direction::Left;
             return Game::Command{ Game::CommandType::Move, Game::Direction::Left };
+        case 'X':
+        case 'x':
+            return Game::Command{ Game::CommandType::Attack, last_direction };
+        case 'Z':
+        case 'z':
+            return Game::Command{ Game::CommandType::Interact, last_direction };
+        case 27:
+            return Game::Command{ Game::CommandType::Quit };
         default:
-            return { Game::CommandType::Quit };
+            return command();
         }
     }
 

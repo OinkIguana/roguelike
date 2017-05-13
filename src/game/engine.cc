@@ -5,16 +5,13 @@
 #include "info.h"
 #include "map.h"
 
-#include "objects/characters/player.h"
-#include "objects/characters/enemies/goblin.h"
-#include "objects/exit.h"
-
 #include <iostream>
+#include <algorithm>
 
 namespace Game {
     Engine::Engine(std::shared_ptr<View> view) : view{ view } {}
 
-    bool Engine::proc(Command cmd, std::shared_ptr<Object> obj, bool player) {
+    bool Engine::proc(Command cmd, std::shared_ptr<Object> obj) {
         switch(cmd.type) {
         case CommandType::Move: {
                 int x = obj->x, y = obj->y;
@@ -25,10 +22,9 @@ namespace Game {
                     case Direction::Right:  x += 1; break;
                 }
                 auto cell = map->cell_at(x, y);
-                // TODO: find a nicer way of determining these flags than passing "player"
-                if(cell->available(obj, true, player, player, true)) {
+                if(cell->available(*obj, true, obj->type == Object::Type::Player, obj->type == Object::Type::Player, true)) {
                     auto thing = cell->contents;
-                    if(thing) thing->collect(obj);
+                    if(thing) thing->collect(*obj);
                     map->cell_at(obj->x, obj->y)->clear();
                     cell->set_contents(obj);
                 } else {
@@ -45,8 +41,8 @@ namespace Game {
                     case Direction::Right:  x += 1; break;
                 }
                 auto cell = map->cell_at(x, y);
-                if(cell->contents && cell->contents->attackable(obj)) {
-                    cell->contents->attack(obj);
+                if(cell->contents && cell->contents->attackable(*obj)) {
+                    cell->contents->attack(*obj);
                 } else {
                     return false;
                 }
@@ -61,8 +57,8 @@ namespace Game {
                     case Direction::Right:  x += 1; break;
                 }
                 auto cell = map->cell_at(x, y);
-                if(cell->contents && cell->contents->interactable(obj)) {
-                    cell->contents->interact(obj);
+                if(cell->contents && cell->contents->interactable(*obj)) {
+                    cell->contents->interact(*obj);
                 } else {
                     return false;
                 }
@@ -96,25 +92,27 @@ namespace Game {
                 // create new level
                 map = std::make_shared<Map>(++info->level);
                 // populate
-                player = map->create<Player>();
-                map->create<Goblin>();
-                map->create<Goblin>();
-                map->create<Goblin>();
-                map->create_avoiding<Exit>(player, [&level_complete] () { level_complete = true; });
+                player = map->add(Object::Player());
+                map->add(Object::Goblin());
+                map->add(Object::Goblin());
+                map->add(Object::Goblin());
+                map->add_avoiding(player, Object::Exit([&level_complete] () { level_complete = true; }));
             } else {
                 // update the map
-                if(proc(cmd, player, true)) {
-                    if(level_complete) continue;
-                    std::vector<std::pair<std::shared_ptr<Object>, Command>> actions;
-                    for(auto& cell : *map) {
-                        if(cell.contents) {
-                            actions.emplace_back(cell.contents, cell.contents->update(cmd));
-                        }
-                    }
-                    for(auto& action : actions) {
-                        proc(action.second, action.first);
+                std::vector<std::pair<std::shared_ptr<Object>, Command>> actions;
+                for(auto& cell : *map) {
+                    if(cell.contents) {
+                        auto events = cell.contents->update(cmd);
+                        std::for_each(events.begin(), events.end(), [&actions, &cell] (Command event) {
+                            actions.emplace_back(cell.contents, event);
+                        });
                     }
                 }
+                std::sort(actions.begin(), actions.end(), [] (std::pair<std::shared_ptr<Object>, Command> a, std::pair<std::shared_ptr<Object>, Command> b) {
+                    return a.first->type < b.first->type;
+                });
+                for(auto& action : actions) { proc(action.second, action.first); }
+                if(level_complete) continue;
             }
             // update the display
             view->update(Game::Update{ UpdateType::MapChange, map.get() });

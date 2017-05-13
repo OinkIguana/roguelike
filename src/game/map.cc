@@ -402,7 +402,7 @@ namespace Game {
     std::string Map::object_string() const {
         std::string x = std::accumulate(cells.begin(), cells.end(), std::string(), [](std::string a, auto row) {
             return a + std::accumulate(row.begin(), row.end(), std::string(), [](std::string a, auto cell) {
-                return a + (cell->contents ? cell->contents->symbol() : ' ');
+                return a + (cell->contents ? cell->contents->symbol : ' ');
             }) + "\n";
         });
         return x;
@@ -447,4 +447,23 @@ namespace Game {
         return *map.cells[y][x];
     }
 
+    std::shared_ptr<Object> Map::add(std::shared_ptr<Object> obj) {
+        std::shared_ptr<Room> rm = choose_room();
+        auto cell = rm->choose_cell();
+        cell->set_contents(obj);
+
+        return obj;
+    }
+
+    std::shared_ptr<Object> Map::add_avoiding(std::shared_ptr<Object> avoid, std::shared_ptr<Object> obj) {
+        std::shared_ptr<Room> rm;
+        do {
+            rm = choose_room();
+        } while(rm->contains(avoid));
+
+        auto cell = rm->choose_cell();
+        cell->set_contents(obj);
+
+        return obj;
+    }
 }

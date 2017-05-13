@@ -21,10 +21,8 @@ namespace Game {
 
         std::shared_ptr<Room> choose_room() const;
 
-        template<typename T, typename ... Args>
-        std::shared_ptr<T> create(Args ... args);
-        template<typename T, typename ... Args>
-        std::shared_ptr<T> create_avoiding(std::shared_ptr<Object>, Args ... args);
+        std::shared_ptr<Object> add(std::shared_ptr<Object>);
+        std::shared_ptr<Object> add_avoiding(std::shared_ptr<Object>, std::shared_ptr<Object>);
         std::shared_ptr<Cell> cell_at(int, int) const;
 
         class Iterator {
@@ -42,32 +40,6 @@ namespace Game {
         Iterator begin();
         Iterator end();
     };
-
-    template<typename T, typename ... Args>
-    std::shared_ptr<T> Map::create(Args ... args) {
-        auto obj = std::make_shared<T>(args...);
-
-        std::shared_ptr<Room> rm = choose_room();
-        auto cell = rm->choose_cell();
-        cell->set_contents(obj);
-
-        return obj;
-    }
-
-    template<typename T, typename ... Args>
-    std::shared_ptr<T> Map::create_avoiding(std::shared_ptr<Object> avoid, Args ... args) {
-        auto obj = std::make_shared<T>(args...);
-
-        std::shared_ptr<Room> rm;
-        do {
-            rm = choose_room();
-        } while(rm->contains(avoid));
-
-        auto cell = rm->choose_cell();
-        cell->set_contents(obj);
-
-        return obj;
-    }
 }
 
 #endif

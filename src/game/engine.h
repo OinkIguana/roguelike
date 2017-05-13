@@ -16,8 +16,8 @@ namespace Game {
         std::shared_ptr<Info> info;
         std::shared_ptr<Map> map;
 
-        std::shared_ptr<Player> player;
-        bool proc(Command, std::shared_ptr<Object>, bool = false);
+        std::shared_ptr<Object> player;
+        bool proc(Command, std::shared_ptr<Object>);
     public:
         Engine(std::shared_ptr<View>);
         int start();

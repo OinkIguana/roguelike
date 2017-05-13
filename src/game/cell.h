@@ -21,7 +21,7 @@ namespace Game {
         void clear();
 
         bool open(bool = true, bool = true, bool = true) const;
-        bool available(std::shared_ptr<Object>, bool = true, bool = true, bool = true, bool = true) const;
+        bool available(Object&, bool = true, bool = true, bool = true, bool = true) const;
     };
 }
 

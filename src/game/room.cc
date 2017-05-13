@@ -28,7 +28,7 @@ namespace Game {
         std::uniform_int_distribution<int> rc(0, cells.size() - 1);
         do {
             cl = cells[rc(rng)];
-        } while(!cl->available(nullptr, true, false, false, false));
+        } while(!cl->open(true, false, false));
         return cl;
     }
 }

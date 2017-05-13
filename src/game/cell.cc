@@ -11,10 +11,10 @@ namespace Game {
     }
 
     bool Cell::open(bool rooms, bool halls, bool doors) const {
-        return (type == Cell::Type::Room && rooms) || (type == Cell::Type::Hall && halls) || (type == Cell::Type::Door && doors);
+        return !contents && ((rooms && type == Cell::Type::Room) || (halls && type == Cell::Type::Hall) || (doors && type == Cell::Type::Door));
     }
 
-    bool Cell::available(std::shared_ptr<Object> who, bool rooms, bool halls, bool doors, bool collect) const {
+    bool Cell::available(Object& who, bool rooms, bool halls, bool doors, bool collect) const {
         return open(rooms, halls, doors) && (!contents || (collect && contents->collectable(who)));
     }
 

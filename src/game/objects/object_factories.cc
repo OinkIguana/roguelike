@@ -5,13 +5,14 @@
 #include "components/collect-callback.h"
 #include "components/coin-pickup.h"
 #include "components/named.h"
+#include "components/eyes.h"
 #include "components/drops.h"
 
 namespace Game {
     std::shared_ptr<Object> Object::Player() {
         return std::make_shared<Object>(
             Type::Player, '@', Stats{ 100, 100, 25, 25 },
-            std::vector<ObjectComponent*>{ new KeyboardInput, new Named{"You"}}
+            std::vector<ObjectComponent*>{ new KeyboardInput, new Named{"You"}, new Eyes }
         );
     }
 

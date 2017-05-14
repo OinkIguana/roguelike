@@ -100,6 +100,7 @@ namespace Game {
                 map = std::make_shared<Map>(++info->level);
                 // populate
                 player = map->add(Object::Player());
+                player->cell()->set_visible(true);
                 map->add(Object::Goblin());
                 map->add(Object::Goblin());
                 map->add(Object::Goblin());

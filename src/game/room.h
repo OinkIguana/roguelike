@@ -15,6 +15,7 @@ namespace Game {
         std::shared_ptr<Cell> choose_cell() const;
         bool contains(std::shared_ptr<Object>) const;
         bool full() const;
+        void set_visible(bool);
     };
 }
 

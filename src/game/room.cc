@@ -3,7 +3,11 @@
 #include "random.h"
 
 namespace Game {
-    Room::Room(std::vector<std::shared_ptr<Cell>> cells) : cells{ cells } {}
+    Room::Room(std::vector<std::shared_ptr<Cell>> cells) : cells{ cells } {
+        for(auto& cell : cells) {
+            cell->rooms.emplace_back(this);
+        }
+    }
 
     bool Room::contains(std::shared_ptr<Object> obj) const {
         for(auto& cell : cells) {
@@ -30,5 +34,11 @@ namespace Game {
             cl = cells[rc(rng)];
         } while(!cl->empty(true, false, false));
         return cl;
+    }
+
+    void Room::set_visible(bool visible) {
+        for(auto& cell : cells) {
+            cell->visible = visible;
+        }
     }
 }

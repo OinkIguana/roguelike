@@ -170,7 +170,7 @@ namespace Game {
         cells = std::vector<std::vector<std::shared_ptr<Cell>>>(h, std::vector<std::shared_ptr<Cell>>(w));
         for(unsigned int y = 0; y < cells.size(); ++y) {
             for(unsigned int x = 0; x < cells[y].size(); ++x) {
-                cells[y][x] = std::make_shared<Cell>(x, y);
+                cells[y][x] = std::make_shared<Cell>(x, y, *this);
             }
         }
 
@@ -296,8 +296,14 @@ namespace Game {
                     cells[yy][xx]->type = Cell::Type::Door;
                     rm_cells.back().emplace_back(Point{ xx, yy });
                     break;
-                case Cell::Type::Hall:
-                    if(cl_graph[yy][xx] - 1 != rm) {
+                case Cell::Type::Hall: {
+                        auto old = rm_cells[cl_graph[yy][xx]-1];
+                        rm_cells.back().reserve(rm_cells.back().size() + old.size());
+                        rm_cells.back().insert(rm_cells.back().end(), old.begin(), old.end());
+                        old.clear();
+                        for(auto& row : cl_graph) {
+                            std::replace(row.begin(), row.end(), cl_graph[yy][xx], r);
+                        }
                         rm_cells.back().emplace_back(Point{ xx, yy });
                     }
                 case Cell::Type::Room:
@@ -338,7 +344,7 @@ namespace Game {
             }
         }
 
-        // add walls/corners to their rooms
+        // add walls/doors/corners to their rooms
         for(int y = 0; y < h; ++y) {
             for(int x = 0; x < w; ++x) {
                 switch(cells[y][x]->type) {
@@ -372,6 +378,19 @@ namespace Game {
                         rm_cells[cl_graph[y+1][x+1]-1].emplace_back(Point{ x, y });
                     }
                     break;
+                case Cell::Type::Door:
+                    if(y != 0 && cells[y-1][x]->type == Cell::Type::Room) {
+                        rm_cells[cl_graph[y-1][x]-1].emplace_back(Point{ x, y });
+                    }
+                    if(y != h - 1 && cells[y+1][x]->type == Cell::Type::Room) {
+                        rm_cells[cl_graph[y+1][x]-1].emplace_back(Point{ x, y });
+                    }
+                    if(x != 0 && cells[y][x-1]->type == Cell::Type::Room) {
+                        rm_cells[cl_graph[y][x-1]-1].emplace_back(Point{ x, y });
+                    }
+                    if(x != w - 1 && cells[y][x+1]->type == Cell::Type::Room) {
+                        rm_cells[cl_graph[y][x+1]-1].emplace_back(Point{ x, y });
+                    }
                 default: break;
                 }
             }
@@ -394,7 +413,7 @@ namespace Game {
         std::vector<std::string> strings(cells.size());
         std::transform(cells.begin(), cells.end(), strings.begin(), [](auto row) {
             return std::accumulate(row.begin(), row.end(), std::string(), [](std::string a, auto cell) {
-                return a + static_cast<char>(cell->type);
+                return a + cell->symbol();
             });
         });
         return strings;
@@ -404,7 +423,7 @@ namespace Game {
         std::vector<std::string> strings(cells.size());
         std::transform(cells.begin(), cells.end(), strings.begin(), [](auto row) {
             return std::accumulate(row.begin(), row.end(), std::string(), [](std::string a, auto cell) {
-                return a + (cell->contents ? cell->contents->symbol : ' ');
+                return a + (cell->visible && cell->contents ? cell->contents->symbol : ' ');
             });
         });
         return strings;

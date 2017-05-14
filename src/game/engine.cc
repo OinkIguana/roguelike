@@ -22,6 +22,7 @@ namespace Game {
                     case Direction::Left:   x -= 1; break;
                     case Direction::Right:  x += 1; break;
                 }
+                if(y < 0 || y >= map->height() || x < 0 || x >= map->width()) { return false; }
                 auto cell = map->cell_at(x, y);
                 if(cell->available(*obj, true, obj->type == Object::Type::Player, obj->type == Object::Type::Player, true)) {
                     auto thing = cell->contents;
@@ -44,6 +45,7 @@ namespace Game {
                     case Direction::Left:   x -= 1; break;
                     case Direction::Right:  x += 1; break;
                 }
+                if(y < 0 || y >= map->height() || x < 0 || x >= map->width()) { return false; }
                 auto cell = map->cell_at(x, y);
                 if(cell->contents && cell->contents->attackable(*obj)) {
                     cell->contents->attack(*obj);
@@ -60,6 +62,7 @@ namespace Game {
                     case Direction::Left:   x -= 1; break;
                     case Direction::Right:  x += 1; break;
                 }
+                if(y < 0 || y >= map->height() || x < 0 || x >= map->width()) { return false; }
                 auto cell = map->cell_at(x, y);
                 if(cell->contents && cell->contents->interactable(*obj)) {
                     cell->contents->interact(*obj);
@@ -121,6 +124,7 @@ namespace Game {
             }
             // update the display
             view->update(Game::Update{ UpdateType::MapChange, map.get() });
+            view->update(Game::Update{ UpdateType::PlayerChange, player.get() });
             view->redraw();
             // process player input
             cmd = view->command();

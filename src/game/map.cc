@@ -157,7 +157,7 @@ namespace Game {
         }
     }
 
-    Map::Map(int level) {
+    Map::Map(int level) : _floor{level} {
         rng.seed(level);
 
         const int rm_count = std::min(MIN_ROOMS + level / 3, MAX_ROOMS);
@@ -390,22 +390,24 @@ namespace Game {
         }
     }
 
-    std::string Map::to_string() const {
-        std::string x = std::accumulate(cells.begin(), cells.end(), std::string(), [](std::string a, auto row) {
-            return a + std::accumulate(row.begin(), row.end(), std::string(), [](std::string a, auto cell) {
+    std::vector<std::string> Map::to_strings() const {
+        std::vector<std::string> strings(cells.size());
+        std::transform(cells.begin(), cells.end(), strings.begin(), [](auto row) {
+            return std::accumulate(row.begin(), row.end(), std::string(), [](std::string a, auto cell) {
                 return a + static_cast<char>(cell->type);
-            }) + "\n";
+            });
         });
-        return x;
+        return strings;
     }
 
-    std::string Map::object_string() const {
-        std::string x = std::accumulate(cells.begin(), cells.end(), std::string(), [](std::string a, auto row) {
-            return a + std::accumulate(row.begin(), row.end(), std::string(), [](std::string a, auto cell) {
+    std::vector<std::string> Map::object_strings() const {
+        std::vector<std::string> strings(cells.size());
+        std::transform(cells.begin(), cells.end(), strings.begin(), [](auto row) {
+            return std::accumulate(row.begin(), row.end(), std::string(), [](std::string a, auto cell) {
                 return a + (cell->contents ? cell->contents->symbol : ' ');
-            }) + "\n";
+            });
         });
-        return x;
+        return strings;
     }
 
     std::shared_ptr<Room> Map::choose_room() const {

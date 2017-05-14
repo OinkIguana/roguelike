@@ -14,8 +14,16 @@ namespace View {
         Game::Direction last_direction;
 
         std::function<Game::Command()> state = [this] () { return character_select(); };
-        std::string map;
-        std::string objects;
+
+        struct { int x, y, w, h; } viewport{ 0, 0, 70, 25 };
+
+        std::vector<std::string> map;
+        std::vector<std::string> objects;
+        std::string names[2];
+        std::string message = "Nothing has happened.";
+        int level = 0;
+        Game::Stats stats[2] { {}, {0, 0, 0, 0} };
+        Game::Inventory inventory;
     public:
         Default();
         ~Default();

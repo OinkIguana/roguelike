@@ -22,9 +22,30 @@ namespace View {
 
     void Default::update(Game::Update update) {
         switch(update.type) {
-        case Game::UpdateType::MapChange:
-            map = update.map->to_string();
-            objects = update.map->object_string();
+        case Game::UpdateType::MapChange: {
+                auto _map = static_cast<Game::Map*>(update.map);
+                map = _map->to_strings();
+                objects = _map->object_strings();
+                level = _map->floor();
+            }
+            break;
+        case Game::UpdateType::PlayerChange: {
+                auto _obj = static_cast<Game::Object*>(update.object);
+                names[0] = _obj->name();
+                stats[0] = _obj->stats;
+                inventory = _obj->inventory;
+                viewport.x = std::max(std::min(static_cast<int>(map[0].size()) - viewport.w, _obj->x - viewport.w / 2), 0);
+                viewport.y = std::max(std::min(static_cast<int>(map.size()) - viewport.h, _obj->y - viewport.h / 2), 0);
+            }
+            break;
+        case Game::UpdateType::TargetChange: {
+                auto _obj = static_cast<Game::Object*>(update.object);
+                names[1] = _obj->name();
+                stats[1] = _obj->stats;
+            }
+            break;
+        case Game::UpdateType::MessageChange:
+            message = update.message;
             break;
         }
     }
@@ -75,17 +96,49 @@ namespace View {
         return state();
     }
     void Default::redraw() {
-        // TODO: draw a nice border, HUD, and restrict the view port
-        int x = 0, y = 0;
-        for(unsigned int c = 0; c < map.length(); ++c) {
-            if(map[c] == '\n') {
-                x = 0;
-                ++y;
-            } else {
-                mvaddch(y, x, objects[c] == ' ' ? map[c] : objects[c]);
+        // border
+        mvaddch(0, 0, '+');
+        mvaddch(viewport.h + 1, 0, '+');
+        mvaddch(0, viewport.w + 1, '+');
+        mvaddch(viewport.h + 1, viewport.w + 1, '+');
+        for(int i = 1; i < viewport.h + 1; ++i) {
+            mvaddch(i, viewport.w + 1, '|');
+            mvaddch(i, 0, '|');
+        }
+        for(int i = 1; i < viewport.w + 1; ++i) {
+            mvaddch(0, i, '-');
+            mvaddch(viewport.h + 1, i, '-');
+        }
+        // map
+        int x = 1, y = 1;
+        for(int j = viewport.y; j < viewport.h + viewport.y; ++j) {
+            for(int i = viewport.x; i < viewport.w + viewport.x; ++i) {
+                // TODO: evaluate usage of c-style casts
+                if(j >= 0 && i >= 0 && j < static_cast<int>(map.size()) && i < static_cast<int>(map[j].size())) {
+                    mvaddch(y, x, objects[j][i] == ' ' ? map[j][i] : objects[j][i]);
+                } else {
+                    mvaddch(y, x, ' ');
+                }
                 ++x;
             }
+            ++y;
+            x = 1;
         }
+        // HUD
+        mvprintw(viewport.h + 2, 1, message.c_str());
+
+        mvprintw(viewport.h + 3, 60, ("Floor " + std::to_string(level)).c_str());
+        mvprintw(viewport.h + 3, 1, ("- " + names[0] + " -").c_str());
+        mvprintw(viewport.h + 4, 1, ("HP: " + std::to_string(stats[0].hp) + "/" + std::to_string(stats[0].max_hp)).c_str());
+        mvprintw(viewport.h + 5, 1, ("ATK: " + std::to_string(stats[0].atk) + "\tDEF: " + std::to_string(stats[0].def)).c_str());
+
+        if(stats[1].hp > 0) {
+            mvprintw(viewport.h + 3, 30, ("- " + names[1] + " -").c_str());
+            mvprintw(viewport.h + 4, 30, ("HP: " + std::to_string(stats[1].hp) + "/" + std::to_string(stats[1].max_hp)).c_str());
+            mvprintw(viewport.h + 5, 30, ("ATK: " + std::to_string(stats[1].atk) + "\tDEF: " + std::to_string(stats[1].def)).c_str());
+        }
+
+        mvprintw(viewport.h + 6, 1, ("Coins: " + std::to_string(inventory.coins)).c_str());
         refresh();
     }
 }

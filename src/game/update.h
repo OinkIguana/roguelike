@@ -6,12 +6,14 @@
 
 namespace Game {
     enum class UpdateType {
-        MapChange
+        MapChange, PlayerChange, TargetChange, MessageChange
     };
     struct Update {
         UpdateType type;
         union {
-            Map* map;
+            void* map;
+            void* object;
+            char* message;
         };
     };
 }

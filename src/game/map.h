@@ -11,13 +11,13 @@ namespace Game {
     class Object;
 
     class Map {
-        int w, h;
+        int w, h, _floor;
         std::vector<std::vector<std::shared_ptr<Cell>>> cells;
         std::vector<std::shared_ptr<Room>> rooms;
     public:
         Map(int);
-        std::string to_string() const;
-        std::string object_string() const;
+        std::vector<std::string> to_strings() const;
+        std::vector<std::string> object_strings() const;
 
         std::shared_ptr<Room> choose_room() const;
 
@@ -39,6 +39,10 @@ namespace Game {
         // cell iteration
         Iterator begin();
         Iterator end();
+
+        inline int width() const { return w; }
+        inline int height() const { return h; }
+        inline int floor() const { return _floor; }
     };
 }
 

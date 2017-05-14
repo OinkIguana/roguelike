@@ -10,5 +10,8 @@ namespace Game {
     bool ObjectComponent::interactable(Object&, const Object&) const { return false; }
     void ObjectComponent::attack(Object&, Object&) { }
     bool ObjectComponent::attackable(Object&, const Object&) const { return false; }
+
+    void ObjectComponent::on_destroy(Object&, Cell&) {};
+
     Command ObjectComponent::update(Command, Object&) { return Command{ CommandType::Idle }; }
 }

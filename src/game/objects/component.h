@@ -18,6 +18,9 @@ namespace Game {
         virtual void interact(Object&, Object&);
         virtual bool attackable(Object&, const Object&) const;
         virtual void attack(Object&, Object&);
+
+        virtual void on_destroy(Object&, Cell&);
+
         virtual Command update(Command, Object&);
     };
 }

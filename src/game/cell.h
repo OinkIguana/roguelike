@@ -21,6 +21,7 @@ namespace Game {
         void clear();
 
         bool open(bool = true, bool = true, bool = true) const;
+        bool empty(bool = true, bool = true, bool = true) const;
         bool available(Object&, bool = true, bool = true, bool = true, bool = true) const;
     };
 }

@@ -5,6 +5,11 @@
 
 namespace Game {
     Object::Object(Type type, char symbol, Stats && stats, std::vector<ObjectComponent*> && components) : _components{components}, stats{stats}, symbol{symbol}, type{type} {}
+
+    Object::~Object() {
+        std::for_each(_components.begin(), _components.end(), [] (ObjectComponent* c) { delete c; });
+    }
+    
     std::string Object::name() const {
         std::string name = "";
         for(auto c : _components) {
@@ -16,9 +21,8 @@ namespace Game {
         }
         return name;
     }
-    Object::~Object() {
-        std::for_each(_components.begin(), _components.end(), [] (ObjectComponent* c) { delete c; });
-    }
+
+    bool Object::dead() const { return _dead; }
 
     void Object::collect(Object& o) {
         std::for_each(_components.begin(), _components.end(), [&o, this] (ObjectComponent* c) { c->collect(o, *this); });
@@ -49,5 +53,12 @@ namespace Game {
     }
     void Object::cell(std::shared_ptr<Cell> ncell) {
         _cell = ncell;
+    }
+
+    void Object::destroy() {
+        auto cl = cell();
+        cl->clear();
+        _dead = true;
+        std::for_each(_components.begin(), _components.end(), [this, cl] (ObjectComponent* c) { c->on_destroy(*this, *cl); });
     }
 }

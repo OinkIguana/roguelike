@@ -11,6 +11,10 @@ namespace Game {
     }
 
     bool Cell::open(bool rooms, bool halls, bool doors) const {
+        return (rooms && type == Cell::Type::Room) || (halls && type == Cell::Type::Hall) || (doors && type == Cell::Type::Door);
+    }
+
+    bool Cell::empty(bool rooms, bool halls, bool doors) const {
         return !contents && ((rooms && type == Cell::Type::Room) || (halls && type == Cell::Type::Hall) || (doors && type == Cell::Type::Door));
     }
 

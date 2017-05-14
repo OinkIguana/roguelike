@@ -12,6 +12,7 @@ namespace Game {
     Engine::Engine(std::shared_ptr<View> view) : view{ view } {}
 
     bool Engine::proc(Command cmd, std::shared_ptr<Object> obj) {
+        if(obj->dead()) { return true; }
         switch(cmd.type) {
         case CommandType::Move: {
                 int x = obj->x, y = obj->y;
@@ -24,7 +25,10 @@ namespace Game {
                 auto cell = map->cell_at(x, y);
                 if(cell->available(*obj, true, obj->type == Object::Type::Player, obj->type == Object::Type::Player, true)) {
                     auto thing = cell->contents;
-                    if(thing) thing->collect(*obj);
+                    if(thing) {
+                        thing->collect(*obj);
+                        thing->destroy();
+                    }
                     map->cell_at(obj->x, obj->y)->clear();
                     cell->set_contents(obj);
                 } else {
@@ -108,6 +112,7 @@ namespace Game {
                         });
                     }
                 }
+                // ensure objects move in the right type-order
                 std::sort(actions.begin(), actions.end(), [] (std::pair<std::shared_ptr<Object>, Command> a, std::pair<std::shared_ptr<Object>, Command> b) {
                     return a.first->type < b.first->type;
                 });

@@ -325,9 +325,14 @@ namespace Game {
                     cells[yy][xx]->type = Cell::Type::Door;
                     rm_cells.back().emplace_back(Point{ xx, yy });
                     break;
-                case Cell::Type::Hall:
-                    if(cl_graph[yy][xx] - 1 != rm) {
-                        tunnel_merges[compute_tunnel_index(cl_graph[yy][xx])] = compute_tunnel_index(r);
+                case Cell::Type::Hall: {
+                        auto old = rm_cells[cl_graph[yy][xx]-1];
+                        rm_cells.back().reserve(rm_cells.back().size() + old.size());
+                        rm_cells.back().insert(rm_cells.back().end(), old.begin(), old.end());
+                        old.clear();
+                        for(auto& row : cl_graph) {
+                            std::replace(row.begin(), row.end(), cl_graph[yy][xx], r);
+                        }
                         rm_cells.back().emplace_back(Point{ xx, yy });
                     }
                 case Cell::Type::Room:

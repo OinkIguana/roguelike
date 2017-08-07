@@ -9,6 +9,7 @@
 #include <numeric>
 #include <iostream>
 #include <array>
+#include <map>
 
 // flood fills a continuous section of a grid[y][x]-like data structure with v
 //  given a predicate
@@ -105,21 +106,32 @@ namespace Game {
         #undef IS_A_ROOM
     }
 
-    void remove_dead_end(std::vector<std::vector<std::shared_ptr<Cell>>>& cells, unsigned int x, unsigned int y) {
+    // TODO these need to remove from rm_cells
+
+    void remove_dead_end(std::vector<std::vector<std::shared_ptr<Cell>>>& cells, std::vector<std::vector<Point>>& rm_cells, unsigned int x, unsigned int y) {
         if(is_dead_end(cells, x, y)) {
             if(cells[y][x]->type == Cell::Type::Hall) {
                 cells[y][x]->type = Cell::Type::Empty;
+                for(auto& row : rm_cells) {
+                    for(auto i = row.begin(); i != row.end(); ) {
+                        if(i->x == static_cast<int>(x) && i->y == static_cast<int>(y)) {
+                            i = row.erase(i);
+                        } else {
+                            ++i;
+                        }
+                    }
+                }
                 if(y != 0) {
-                    remove_dead_end(cells, x, y - 1);
+                    remove_dead_end(cells, rm_cells, x, y - 1);
                 }
                 if(x != 0) {
-                    remove_dead_end(cells, x - 1, y);
+                    remove_dead_end(cells, rm_cells, x - 1, y);
                 }
                 if(y != cells.size() - 1) {
-                    remove_dead_end(cells, x, y + 1);
+                    remove_dead_end(cells, rm_cells, x, y + 1);
                 }
                 if(x != cells[0].size() - 1) {
-                    remove_dead_end(cells, x + 1, y);
+                    remove_dead_end(cells, rm_cells, x + 1, y);
                 }
             } else if(cells[y][x]->type == Cell::Type::Door) {
                 if(y == 0 || y == cells.size() -1 || cells[y + 1][x]->type == Cell::Type::Room || cells[y - 1][x]->type == Cell::Type::Room) {
@@ -131,10 +143,19 @@ namespace Game {
         }
     }
 
-    void remove_fat_hallways(std::vector<std::vector<std::shared_ptr<Cell>>>& cells, unsigned int x, unsigned int y) {
+    void remove_fat_hallways(std::vector<std::vector<std::shared_ptr<Cell>>>& cells, std::vector<std::vector<Point>>& rm_cells, unsigned int x, unsigned int y) {
         if(is_fat_hallway(cells, x, y)) {
             if(cells[y][x]->type == Cell::Type::Hall) {
                 cells[y][x]->type = Cell::Type::Empty;
+                for(auto& row : rm_cells) {
+                    for(auto i = row.begin(); i != row.end(); ) {
+                        if(i->x == static_cast<int>(x) && i->y == static_cast<int>(y)) {
+                            i = row.erase(i);
+                        } else {
+                            ++i;
+                        }
+                    }
+                }
             } else if(cells[y][x]->type == Cell::Type::Door) {
                 if(y == 0 || y == cells.size() - 1 || cells[y + 1][x]->type == Cell::Type::Room || cells[y - 1][x]->type == Cell::Type::Room) {
                     cells[y][x]->type = Cell::Type::WallH;
@@ -143,16 +164,16 @@ namespace Game {
                 }
             }
             if(y > 0) {
-                remove_fat_hallways(cells, x, y - 1);
+                remove_fat_hallways(cells, rm_cells, x, y - 1);
             }
             if(x > 0) {
-                remove_fat_hallways(cells, x - 1, y);
+                remove_fat_hallways(cells, rm_cells, x - 1, y);
             }
             if(y < cells.size() - 1) {
-                remove_fat_hallways(cells, x, y + 1);
+                remove_fat_hallways(cells, rm_cells, x, y + 1);
             }
             if(x < cells[0].size() - 1) {
-                remove_fat_hallways(cells, x + 1, y);
+                remove_fat_hallways(cells, rm_cells, x + 1, y);
             }
         }
     }
@@ -259,6 +280,11 @@ namespace Game {
         std::vector<std::array<int, 4>> tunnels(r, std::array<int, 4>{ 0, 0, 0, 0 });
         std::uniform_int_distribution<int> rd(0, 3);
         std::binomial_distribution<bool> rcont(rm_count / MAX_ROOMS / 4);
+        std::map<int, int> tunnel_merges;
+        std::function<int(int)> compute_tunnel_index = [&tunnel_merges, &compute_tunnel_index] (int r) {
+            const int t = tunnel_merges[r];
+            return t == 0 || t == r ? r : compute_tunnel_index(t);
+        };
         while(!all_of(connected.begin(), connected.end(), [](int is){ return is == 1; }) || rcont(rng)) {
             ++r;
             std::uniform_int_distribution<int> rr(0, rm_cells.size() - 1);
@@ -284,6 +310,9 @@ namespace Game {
 
             connected.emplace_back(connected[rm]);
             ++tunnels[rm][dir];
+            if(cells[yy][xx]->type == Cell::Type::Hall) {
+                tunnel_merges[compute_tunnel_index(cl_graph[yy][xx])] = compute_tunnel_index(r);
+            }
             while(xx >= 0 && xx < w && yy >= 0 && yy < h) {
                 switch(cells[yy][xx]->type) {
                 case Cell::Type::Empty:
@@ -296,14 +325,9 @@ namespace Game {
                     cells[yy][xx]->type = Cell::Type::Door;
                     rm_cells.back().emplace_back(Point{ xx, yy });
                     break;
-                case Cell::Type::Hall: {
-                        auto old = rm_cells[cl_graph[yy][xx]-1];
-                        rm_cells.back().reserve(rm_cells.back().size() + old.size());
-                        rm_cells.back().insert(rm_cells.back().end(), old.begin(), old.end());
-                        old.clear();
-                        for(auto& row : cl_graph) {
-                            std::replace(row.begin(), row.end(), cl_graph[yy][xx], r);
-                        }
+                case Cell::Type::Hall:
+                    if(cl_graph[yy][xx] - 1 != rm) {
+                        tunnel_merges[compute_tunnel_index(cl_graph[yy][xx])] = compute_tunnel_index(r);
                         rm_cells.back().emplace_back(Point{ xx, yy });
                     }
                 case Cell::Type::Room:
@@ -332,15 +356,26 @@ namespace Game {
         for(int y = 0; y < h; ++y) {
             for(int x = 0; x < w; ++x) {
                 if(is_fat_hallway(cells, x, y)) {
-                    remove_fat_hallways(cells, x, y);
+                    remove_fat_hallways(cells, rm_cells, x, y);
                 }
             }
         }
         for(int y = 0; y < h; ++y) {
             for(int x = 0; x < w; ++x) {
                 if(is_dead_end(cells, x, y)) {
-                    remove_dead_end(cells, x, y);
+                    remove_dead_end(cells, rm_cells, x, y);
                 }
+            }
+        }
+
+        // perform the tunnel merges
+        for(unsigned int i = 0; i < rm_cells.size(); ++i) {
+            const unsigned int actual = compute_tunnel_index(i+1) - 1;
+            if(actual != i) {
+                auto & old = rm_cells[i];
+                rm_cells[actual].reserve(rm_cells[actual].size() + old.size());
+                rm_cells[actual].insert(rm_cells[actual].end(), old.begin(), old.end());
+                old.clear();
             }
         }
 

@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["Cameron Eldridge <cameldridge+git@gmail.com>"]
 
 [dependencies]
+pancurses = "0.9"

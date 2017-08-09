@@ -1,3 +1,7 @@
+use engine::state::State;
+
+/// An Outputter is used to display the game to the user
 pub trait Outputter {
-    fn render(&self);
+    /// Renderes the current game state to the screen
+    fn render(&self, state: &State);
 }

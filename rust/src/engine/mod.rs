@@ -23,8 +23,8 @@ impl<I: Inputter, O: Outputter> Engine<I, O> {
     pub fn run(&self) {
         let mut state = State::new();
         while !state.quit {
-            state = self.process(self.input.get(), state);
             self.output.render(&state);
+            state = self.process(self.input.get(), state);
         }
     }
 

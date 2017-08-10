@@ -3,7 +3,8 @@ use std::mem::replace;
 
 /// A TileType determines the geography of each tile
 #[allow(dead_code)]
-enum TileType {
+#[derive(Clone)]
+pub enum TileType {
     Floor,
     Wall,
     Hall,
@@ -32,12 +33,17 @@ impl TileType {
 
 /// A Tile represents one space in the dungeon. It can have one of a few types, and can
 /// optionally hold one Actor
-pub struct Tile {
+pub struct Tile<'a> {
     kind: TileType,
     contents: Option<Box<Actor>>,
+    neighbours: [Option<&'a Tile<'a>>; 8],
 }
 
-impl Tile {
+impl<'a> Tile<'a> {
+    pub fn new(kind: TileType) -> Tile<'a> {
+        Tile{ kind, contents: None, neighbours: [None; 8] }
+    }
+
     /// Move this Cell's contents to the provided cell, destroying what was there
     #[allow(dead_code)]
     pub fn move_to(&mut self, tile: &mut Tile) {

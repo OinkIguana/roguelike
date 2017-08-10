@@ -1,5 +1,6 @@
 pub mod state;
 pub mod map;
+mod actors;
 
 use outputter::Outputter;
 use inputter::{Inputter,Action};

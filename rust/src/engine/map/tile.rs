@@ -1,8 +1,7 @@
 use super::super::actors::Actor;
-use std::mem::replace;
+use inputter::Action;
 
 /// A TileType determines the geography of each tile
-#[allow(dead_code)]
 #[derive(Clone)]
 pub enum TileType {
     Floor,
@@ -16,9 +15,9 @@ impl TileType {
     /// The symbol that represents this TileType
     ///
     /// *   `Floor` → `.`
-    /// *   `Wall` → `x`
-    /// *   `Hall` → `#`
-    /// *   `Door` → `+`
+    /// *   `Wall`  → `x`
+    /// *   `Hall`  → `#`
+    /// *   `Door`  → `+`
     /// *   `Empty` → ` `
     fn symbol(&self) -> char {
         match *self {
@@ -33,27 +32,32 @@ impl TileType {
 
 /// A Tile represents one space in the dungeon. It can have one of a few types, and can
 /// optionally hold one Actor
-pub struct Tile<'a> {
+#[derive(Clone)]
+pub struct Tile {
     kind: TileType,
     contents: Option<Box<Actor>>,
-    neighbours: [Option<&'a Tile<'a>>; 8],
 }
 
-impl<'a> Tile<'a> {
-    pub fn new(kind: TileType) -> Tile<'a> {
-        Tile{ kind, contents: None, neighbours: [None; 8] }
+impl Tile {
+    pub fn new(kind: TileType) -> Tile {
+        Tile{ kind, contents: None }
     }
 
     /// Move this Cell's contents to the provided cell, destroying what was there
-    #[allow(dead_code)]
-    pub fn move_to(&mut self, tile: &mut Tile) {
-        tile.contents = replace(&mut self.contents, None);
+    pub fn move_to(self, tile: Tile) -> (Tile, Tile) {
+        (
+            Tile{ kind: self.kind, contents: None },
+            Tile{ kind: tile.kind, contents: self.contents },
+        )
     }
 
     /// Destroys the Cell's contents
-    #[allow(dead_code)]
     pub fn empty(&mut self) {
         self.contents = None;
+    }
+
+    pub fn fill(&mut self, actor: Box<Actor>) {
+        self.contents = Some(actor);
     }
 
     /// Determines what symbol should be displayed for this tile, taking into account its contents
@@ -64,5 +68,9 @@ impl<'a> Tile<'a> {
     /// Determines what symbol should be displayed for this tile when it is empty
     pub fn empty_symbol(&self) -> char {
         self.kind.symbol()
+    }
+
+    pub fn process(&self, action: Action) -> Action {
+        self.contents.as_ref().map_or(Action::Idle, |ref c| c.react(action))
     }
 }

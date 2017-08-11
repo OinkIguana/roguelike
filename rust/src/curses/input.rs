@@ -11,10 +11,11 @@ impl<'a> Input<'a> {
 }
 impl<'a> Inputter for Input<'a> {
     fn get(&self) -> Action {
-        match self.window.getch() {
+        let a = self.window.getch();
+        match a {
             Some(UInput::Character('q')) => Action::Quit,
-            Some(UInput::Character('z')) => Action::Interact,
-            Some(UInput::Character('x')) => Action::Attack,
+            Some(UInput::Character('z')) => Action::Interact(Direction::N),
+            Some(UInput::Character('x')) => Action::Attack(Direction::N),
             Some(UInput::KeyUp) => Action::Move(Direction::N),
             Some(UInput::KeyDown) => Action::Move(Direction::S),
             Some(UInput::KeyLeft) => Action::Move(Direction::W),

@@ -5,13 +5,17 @@ pub trait Inputter {
     fn get(&self) -> Action;
 }
 /// Directions correspond to the cardinal directions and are used to indicate which way to move
-#[allow(dead_code)]
-pub enum Direction { N, S, W, E, NW, NE, SW, SE }
+#[derive(Clone)]
+#[derive(Debug)]
+pub enum Direction { N, S, W, E } // , NW, NE, SW, SE
+
 /// An Action describes the actions that the player can take
+#[derive(Clone)]
+#[derive(Debug)]
 pub enum Action {
     Idle,
-    Attack,
-    Interact,
+    Attack(Direction),
+    Interact(Direction),
     Move(Direction),
     Quit,
 }

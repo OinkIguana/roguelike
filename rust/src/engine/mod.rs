@@ -3,7 +3,7 @@ pub mod map;
 mod actors;
 
 use outputter::Outputter;
-use inputter::{Inputter,Action};
+use inputter::Inputter;
 use self::state::State;
 
 /// The Engine encapsulates the behaviours of the game
@@ -24,19 +24,7 @@ impl<I: Inputter, O: Outputter> Engine<I, O> {
         let mut state = State::new();
         while !state.quit {
             self.output.render(&state);
-            state = self.process(self.input.get(), state);
-        }
-    }
-
-    /// Takes an Action and the previous state and produces the next state
-    /// kind of like a flux reducer...
-    fn process(&self, input: Action, state: State) -> State {
-        match input {
-            Action::Quit => state.quit(),
-            Action::Idle => state,
-            Action::Move(_) => state,
-            Action::Attack => state,
-            Action::Interact => state,
+            state = state.process(self.input.get());
         }
     }
 }

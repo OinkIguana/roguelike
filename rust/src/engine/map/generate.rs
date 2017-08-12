@@ -5,8 +5,8 @@ use engine::Direction;
 use super::Map;
 use super::tile::{Tile,TileType};
 
-const MIN_ROOMS: u32 = 5;
-const MAX_ROOMS: u32 = 30;
+const MIN_ROOMS: u8 = 5;
+const MAX_ROOMS: u8 = 30;
 
 struct Rectangle {
     x: usize,
@@ -22,16 +22,18 @@ impl Rectangle {
 }
 
 pub fn generate_map(complexity: u32, width: usize, height: usize) -> Vec<Tile> {
-    let room_count = min(MIN_ROOMS + complexity / 3, MAX_ROOMS);
+    let room_count = min(MIN_ROOMS + (complexity / 3) as u8, MAX_ROOMS);
 
-    let tiles = generate_tiles(room_count, width, height);
-    let graph = graph_tiles(&tiles, width, height);
-
+    let rooms = generate_tiles(room_count, width, height);
+    let graph = graph_tiles(&rooms, width, height);
+    let halls = generate_halls(graph, room_count, width, height);
+    let rooms_and_halls = add_halls(rooms, halls);
+    let tiles = add_walls(rooms_and_halls, width, height);
 
     tiles
 }
 
-fn generate_tiles(room_count: u32, width: usize, height: usize) -> Vec<Tile>{
+fn generate_tiles(room_count: u8, width: usize, height: usize) -> Vec<Tile>{
     let mut rng = thread_rng();
     let mut merges_available = room_count / 2;
 
@@ -104,4 +106,21 @@ fn flood<T, F: Fn(&T) -> bool>(mut graph: Vec<u8>, room_index: u8, tile_index: u
         }
     }
     graph
+}
+
+fn generate_halls(graph: Vec<u8>, room_count: u8, width: usize, height: usize) -> Vec<bool> {
+    vec![false; width * height]
+}
+
+fn add_halls(rooms: Vec<Tile>, halls: Vec<bool>) -> Vec<Tile> {
+    rooms
+        .iter()
+        .to_owned()
+        .zip(halls.iter().map(|b| *b))
+        .map(|(tile, hall)| if hall { Tile::new(TileType::Hall) } else { tile.clone() })
+        .collect()
+}
+
+fn add_walls(tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
+    tiles
 }

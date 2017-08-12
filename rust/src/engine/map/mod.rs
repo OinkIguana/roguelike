@@ -1,9 +1,8 @@
 mod tile;
 
-pub use self::tile::Tile;
+pub use self::tile::{Tile,TileType};
 
 use std::mem::replace;
-use self::tile::TileType;
 use super::actors::Player;
 use inputter::{Action,Direction};
 

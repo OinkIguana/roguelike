@@ -1,4 +1,5 @@
 mod player;
+use super::map::TileType;
 use inputter::Action;
 
 /// An Actor is the basic building block of every item or character in the game
@@ -22,6 +23,12 @@ pub trait Actor: ActorClone {
     fn on_destroy(&self) {}
 
     fn symbol(&self) -> char { ' ' }
+    fn can_enter(&self, tile: &TileType) -> bool {
+        match tile {
+            &TileType::Wall | &TileType::Empty => false,
+            _ => true,
+        }
+    }
 }
 
 pub trait ActorClone {

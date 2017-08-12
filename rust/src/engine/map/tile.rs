@@ -45,10 +45,15 @@ impl Tile {
 
     /// Move this Cell's contents to the provided cell, destroying what was there
     pub fn move_to(self, tile: Tile) -> (Tile, Tile) {
-        (
-            Tile{ kind: self.kind, contents: None },
-            Tile{ kind: tile.kind, contents: self.contents },
-        )
+        match self.contents {
+            None => (self, tile),
+            Some(ref actor) if actor.can_enter(&tile.kind) =>
+                (   // TODO: any way to avoid cloning here?
+                    Tile{ kind: self.kind, contents: None },
+                    Tile{ kind: tile.kind, contents: self.contents.clone() },
+                ),
+            _ => (self, tile)
+        }
     }
 
     /// Destroys the Cell's contents

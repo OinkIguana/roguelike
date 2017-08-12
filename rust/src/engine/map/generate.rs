@@ -1,6 +1,8 @@
 use std::cmp::min;
 use rand::{thread_rng};
 use rand::distributions::{IndependentSample,Range,Normal};
+use engine::Direction;
+use super::Map;
 use super::tile::{Tile,TileType};
 
 const MIN_ROOMS: u32 = 5;
@@ -20,10 +22,18 @@ impl Rectangle {
 }
 
 pub fn generate_map(complexity: u32, width: usize, height: usize) -> Vec<Tile> {
-    let mut rng = thread_rng();
+    let room_count = min(MIN_ROOMS + complexity / 3, MAX_ROOMS);
 
-    let rm_count = min(MIN_ROOMS + complexity / 3, MAX_ROOMS);
-    let mut merges_available = rm_count / 2;
+    let tiles = generate_tiles(room_count, width, height);
+    let graph = graph_tiles(&tiles, width, height);
+
+
+    tiles
+}
+
+fn generate_tiles(room_count: u32, width: usize, height: usize) -> Vec<Tile>{
+    let mut rng = thread_rng();
+    let mut merges_available = room_count / 2;
 
     let mut tiles = vec![Tile::new(TileType::Empty); width * height];
     let x_range = Range::new(0, width);
@@ -34,7 +44,7 @@ pub fn generate_map(complexity: u32, width: usize, height: usize) -> Vec<Tile> {
 
     let mut rooms: Vec<Rectangle> = vec![];
 
-    for _ in 0..rm_count {
+    for _ in 0..room_count {
         loop {
             let room = Rectangle{
                 x: x_range.ind_sample(&mut rng),
@@ -59,10 +69,39 @@ pub fn generate_map(complexity: u32, width: usize, height: usize) -> Vec<Tile> {
         for x in room.x..room.x + room.w {
             for y in room.y..room.y + room.h {
                 let index = y * width + x;
-                tiles[index].set_kind(TileType::Floor);
+                tiles[index].kind = TileType::Floor;
             }
         }
     }
 
     tiles
+}
+
+fn graph_tiles(tiles: &Vec<Tile>, width: usize, height: usize) -> Vec<u8> {
+    let mut graph = vec![0; tiles.len()];
+    let mut room_index = 1;
+    for (index, tile) in tiles.iter().enumerate() {
+        if tile.kind == TileType::Floor && graph[index] > 0 {
+            graph = flood(graph, room_index, index, width, height, tiles, &|tile: &Tile| tile.kind == TileType::Floor);
+            room_index += 1;
+        }
+    }
+    graph
+}
+
+fn flood<T, F: Fn(&T) -> bool>(mut graph: Vec<u8>, room_index: u8, tile_index: usize, width: usize, height: usize, tiles: &Vec<T>, pred: &F) -> Vec<u8> {
+    if graph[tile_index] > 0 { return graph; }
+    if pred(&tiles[tile_index]) {
+        graph[tile_index] = room_index;
+        let neighbours = vec![
+        Map::neighbouring_tile_index(tile_index, width, height, Direction::N),
+        Map::neighbouring_tile_index(tile_index, width, height, Direction::S),
+        Map::neighbouring_tile_index(tile_index, width, height, Direction::W),
+        Map::neighbouring_tile_index(tile_index, width, height, Direction::E),
+        ];
+        for neighbour in neighbours.iter().flat_map(|n| n.iter()).map(|i| *i) {
+            graph = flood(graph, room_index, neighbour, width, height, tiles, pred)
+        }
+    }
+    graph
 }

@@ -2,7 +2,7 @@ use super::super::actors::Actor;
 use inputter::Action;
 
 /// A TileType determines the geography of each tile
-#[derive(Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum TileType {
     Floor,
     Wall,
@@ -34,7 +34,7 @@ impl TileType {
 /// optionally hold one Actor
 #[derive(Clone)]
 pub struct Tile {
-    kind: TileType,
+    pub kind: TileType,
     contents: Option<Box<Actor>>,
 }
 
@@ -77,9 +77,5 @@ impl Tile {
 
     pub fn process(&self, action: Action) -> Action {
         self.contents.as_ref().map_or(Action::Idle, |ref c| c.react(action))
-    }
-
-    pub fn set_kind(&mut self, kind: TileType) {
-        self.kind = kind;
     }
 }

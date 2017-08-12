@@ -28,3 +28,8 @@ impl<I: Inputter, O: Outputter> Engine<I, O> {
         }
     }
 }
+
+/// Directions correspond to the cardinal directions and are used to indicate which way to move
+#[derive(Clone)]
+#[derive(Debug)]
+pub enum Direction { N, S, W, E } // , NW, NE, SW, SE

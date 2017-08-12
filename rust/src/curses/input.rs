@@ -1,5 +1,6 @@
 use pancurses::{Window,Input as UInput};
-use inputter::{Inputter,Action,Direction};
+use inputter::{Inputter,Action};
+use engine::Direction;
 
 pub struct Input<'a> {
     window: &'a Window,

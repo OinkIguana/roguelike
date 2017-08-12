@@ -18,7 +18,7 @@ pub struct State { // TODO: are all the fields pub?
 impl State {
     /// Creates the initial state
     pub fn new() -> State {
-        State{ map: Map::new(7, 7), score: 0, level: 1, quit: false }
+        State{ map: Map::new(1), score: 0, level: 1, quit: false }
     }
 
     /// Sets the quit field of the State

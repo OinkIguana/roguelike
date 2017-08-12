@@ -78,4 +78,8 @@ impl Tile {
     pub fn process(&self, action: Action) -> Action {
         self.contents.as_ref().map_or(Action::Idle, |ref c| c.react(action))
     }
+
+    pub fn set_kind(&mut self, kind: TileType) {
+        self.kind = kind;
+    }
 }

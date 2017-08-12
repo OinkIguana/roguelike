@@ -1,10 +1,11 @@
 mod tile;
-
-pub use self::tile::{Tile,TileType};
+mod generate;
 
 use std::mem::replace;
-use super::actors::Player;
 use inputter::{Action,Direction};
+use self::generate::generate_map;
+
+pub use self::tile::{Tile,TileType};
 
 /// A Map contains tiles in a grid, which make up the whole dungeon
 pub struct Map {
@@ -13,19 +14,15 @@ pub struct Map {
     pub height: usize,
 }
 
+const GROWTH_FACTOR: f32 = 1.5;
+const MIN_HEIGHT: f32 = 20.0;
+
 impl Map {
     /// Creates a new map with the provided dimensions
-    pub fn new(width: usize, height: usize) -> Map {
-        let mut tiles: Vec<Tile> = vec![
-            TileType::Empty, TileType::Empty, TileType::Empty, TileType::Hall, TileType::Empty, TileType::Empty, TileType::Empty,
-            TileType::Empty, TileType::Wall, TileType::Wall, TileType::Door, TileType::Wall, TileType::Wall, TileType::Empty,
-            TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
-            TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
-            TileType::Empty, TileType::Wall, TileType::Floor, TileType::Floor, TileType::Floor, TileType::Wall, TileType::Empty,
-            TileType::Empty, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Wall, TileType::Empty,
-            TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty, TileType::Empty,
-        ].iter().map(|kind| Tile::new(kind.clone())).collect();
-        tiles[24].fill(Box::new(Player{}));
+    pub fn new(complexity: u32) -> Map {
+        let height: usize = (MIN_HEIGHT + GROWTH_FACTOR * complexity as f32).round() as usize;
+        let width: usize = (1.618 * height as f32 * 2.0).round() as usize;
+        let tiles = generate_map(complexity, width, height);
         Map{ tiles, width, height }
     }
 

@@ -1,3 +1,4 @@
+extern crate rand;
 extern crate pancurses;
 
 mod engine;

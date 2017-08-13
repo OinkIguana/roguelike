@@ -1,3 +1,4 @@
+use std::fmt::{Display,Formatter,Result};
 use super::super::actors::Actor;
 use inputter::Action;
 
@@ -27,6 +28,12 @@ impl TileType {
             TileType::Door  => '+',
             TileType::Empty => ' ',
         }
+    }
+}
+
+impl Display for TileType {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}", self.symbol())
     }
 }
 
@@ -77,5 +84,11 @@ impl Tile {
 
     pub fn process(&self, action: Action) -> Action {
         self.contents.as_ref().map_or(Action::Idle, |ref c| c.react(action))
+    }
+}
+
+impl Display for Tile {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}", self.symbol())
     }
 }

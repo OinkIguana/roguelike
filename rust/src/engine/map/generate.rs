@@ -130,20 +130,16 @@ fn generate_halls(graph: Vec<u8>, width: usize, height: usize) -> Vec<bool> {
         let x2 = col(to_t) as i32;
         let y2 = row(to_t) as i32;
         let mut dir: bool = rng.gen();
-        while {
+        while x1 != x2 || y1 != y2 {
             halls[ind(x1, y1)] = true;
-            match dir {
-                true => {
-                    x1 += (x2 - x1).signum();
-                    dir = x1 != x2;
-                }
-                false => {
-                    y1 += (y2 - y1).signum();
-                    dir = y1 == y2;
-                }
+            if dir {
+                x1 += (x2 - x1).signum();
+                dir = x1 != x2;
+            } else {
+                y1 += (y2 - y1).signum();
+                dir = y1 == y2;
             }
-            x1 != x2 || y1 != y2
-        }{}
+        }
         connected.push(from_r);
     }
     halls

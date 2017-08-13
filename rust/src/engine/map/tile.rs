@@ -3,7 +3,7 @@ use super::super::actors::Actor;
 use inputter::Action;
 
 /// A TileType determines the geography of each tile
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum TileType {
     Floor,
     Wall,

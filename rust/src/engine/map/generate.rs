@@ -16,8 +16,8 @@ struct Rectangle {
 }
 impl Rectangle {
     fn collides(&self, rect: &Rectangle) -> bool {
-        rect.x + rect.w >= self.x && rect.x < self.x + self.w &&
-        rect.y + rect.h >= self.y && rect.y < self.y + self.h
+        rect.x + rect.w >= self.x && rect.x <= self.x + self.w &&
+        rect.y + rect.h >= self.y && rect.y <= self.y + self.h
     }
 }
 
@@ -28,14 +28,19 @@ pub fn generate_map(complexity: u32, width: usize, height: usize) -> Vec<Tile> {
     let graph = graph_tiles(&rooms, width, height);
     let halls = generate_halls(graph, width, height);
     let rooms_and_halls = add_halls(rooms, halls);
-    let tiles = add_walls(rooms_and_halls, width, height);
+    for (i, k) in rooms_and_halls.iter().map(|r| r.kind).enumerate() {
+        eprint!("{}", k);
+        if i % width == width - 1 { eprintln!(); }
+    }
+    let trimmed = trim_halls(rooms_and_halls, width, height);
+    let tiles = add_walls(trimmed, width, height);
 
     tiles
 }
 
 fn generate_tiles(room_count: u8, width: usize, height: usize) -> Vec<Tile>{
     let mut rng = thread_rng();
-    let mut merges_available = room_count / 2;
+    let mut merges_available: usize = room_count as usize / 2;
 
     let mut tiles = vec![Tile::new(TileType::Empty); width * height];
     let x_range = Range::new(0, width);
@@ -57,10 +62,10 @@ fn generate_tiles(room_count: u8, width: usize, height: usize) -> Vec<Tile>{
 
             if room.x + room.w >= width || room.y + room.h > height { continue; }
 
-            let collides = rooms.iter().any(|ref rm| rm.collides(&room));
-            if collides {
-                if merges_available == 0 || coll_range.ind_sample(&mut rng) != 0 { continue; }
-                merges_available -= 1;
+            let collides = rooms.iter().map(|ref rm| rm.collides(&room)).filter(|b| *b).count();
+            if collides > 0 {
+                if merges_available < collides || coll_range.ind_sample(&mut rng) != 0 { continue; }
+                merges_available -= collides;
             }
             rooms.push(room);
             break;
@@ -95,12 +100,10 @@ fn flood<T, F: Fn(&T) -> bool>(mut graph: Vec<u8>, room_index: u8, tile_index: u
     if graph[tile_index] > 0 { return graph; }
     if pred(&tiles[tile_index]) {
         graph[tile_index] = room_index;
-        let neighbours = vec![
-            Map::neighbouring_tile_index(tile_index, width, height, Direction::N),
-            Map::neighbouring_tile_index(tile_index, width, height, Direction::S),
-            Map::neighbouring_tile_index(tile_index, width, height, Direction::W),
-            Map::neighbouring_tile_index(tile_index, width, height, Direction::E),
-        ];
+        let neighbours: Vec<Option<usize>> = Direction::cardinals()
+            .into_iter()
+            .map(|d| Map::neighbouring_tile_index(tile_index, width, height, d))
+            .collect();
         for neighbour in neighbours.iter().flat_map(|n| n.iter()).map(|i| *i) {
             graph = flood(graph, room_index, neighbour, width, height, tiles, pred)
         }
@@ -129,7 +132,7 @@ fn generate_halls(graph: Vec<u8>, width: usize, height: usize) -> Vec<bool> {
         let mut y1 = row(from_t) as i32;
         let x2 = col(to_t) as i32;
         let y2 = row(to_t) as i32;
-        let mut dir: bool = rng.gen();
+        let mut dir: bool = rng.gen(); // dir ? horizontal : vertical
         while x1 != x2 || y1 != y2 {
             halls[ind(x1, y1)] = true;
             if dir {
@@ -165,4 +168,54 @@ fn add_halls(rooms: Vec<Tile>, halls: Vec<bool>) -> Vec<Tile> {
 
 fn add_walls(tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
     tiles
+}
+
+fn trim_halls(mut tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
+    for index in 0..width * height {
+        if is_fat_hallway(&tiles, index, width, height) {
+            tiles[index].kind = TileType::Empty;
+        }
+    }
+    for index in 0..width * height {
+        tiles = remove_dead_end(tiles, index, width, height);
+    }
+    tiles
+}
+
+fn remove_dead_end(mut tiles: Vec<Tile>, index: usize, width: usize, height: usize) -> Vec<Tile> {
+    let neighbours: Vec<usize> = Direction::cardinals()
+        .into_iter()
+        .map(|d| Map::neighbouring_tile_index(index, width, height, d))
+        .flat_map(|n| n)
+        .filter(|n| tiles[*n].kind != TileType::Empty)
+        .collect();
+    if neighbours.len() > 1 { return tiles; }
+    tiles[index].kind = TileType::Empty;
+    if neighbours.len() > 0 {
+        remove_dead_end(tiles, neighbours[0], width, height)
+    } else {
+        tiles
+    }
+}
+
+
+fn is_fat_hallway(tiles: &Vec<Tile>, index: usize, width: usize, height: usize) -> bool {
+    if tiles[index].kind != TileType::Hall { return false; }
+    let neighbours: String =
+        Direction::variants()
+            .into_iter()
+            .map(|d| Map::neighbouring_tile_index(index, width, height, d).map(|n| tiles[n].kind))
+            .map(|o| match o {
+                None | Some(TileType::Empty) => ' ',
+                _                            => '.',
+            }).collect();
+    match &neighbours[..] {
+        " ...    " | "   ...  " | "     ..." | "..     ." | "..... . " | ". ..... " | ". . ...." | "... . .." |
+        "....    " | " ....   " | "  ....  " | "   .... " | "    ...." | ".    ..." | "..    .." | "...    ." |
+        ".....   " | " .....  " | "  ..... " | "   ....." | ".   ...." | "..   ..." | "...   .." | "....   ." |
+        "......  " | " ...... " | "  ......" | ".  ....." | "..  ...." | "...  ..." | "....  .." | " ..... ." |
+        "....... " | " ......." | ". ......" | ".. ....." | "... ...." | ".... ..." | "..... .." | "...... ." |
+        "........" => true,
+        _ => false,
+    }
 }

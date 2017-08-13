@@ -59,6 +59,18 @@ impl Map {
                 Some(tile_index - 1),
             Direction::E if tile_index % width < width - 1 =>
                 Some(tile_index + 1),
+            Direction::NE =>
+                Map::neighbouring_tile_index(tile_index, width, height, Direction::N)
+                .and_then(|n| Map::neighbouring_tile_index(n, width, height, Direction::E)),
+            Direction::NW =>
+                Map::neighbouring_tile_index(tile_index, width, height, Direction::N)
+                .and_then(|n| Map::neighbouring_tile_index(n, width, height, Direction::W)),
+            Direction::SE =>
+                Map::neighbouring_tile_index(tile_index, width, height, Direction::S)
+                .and_then(|n| Map::neighbouring_tile_index(n, width, height, Direction::E)),
+            Direction::SW =>
+                Map::neighbouring_tile_index(tile_index, width, height, Direction::S)
+                .and_then(|n| Map::neighbouring_tile_index(n, width, height, Direction::W)),
             _ => None
         }
     }

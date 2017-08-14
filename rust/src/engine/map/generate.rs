@@ -8,6 +8,8 @@ use super::tile::{Tile,TileType};
 const MIN_ROOMS: u8 = 5;
 const MAX_ROOMS: u8 = 30;
 
+// TODO: make a struct for passing around a vec + width/height
+
 struct Rectangle {
     x: usize,
     y: usize,
@@ -21,6 +23,14 @@ impl Rectangle {
     }
 }
 
+/// Given a complexity and dimensions, an entire dungeon map is created
+///
+/// 1.  Generate the set of tiles, some floors and some empty
+/// 2.  Make a graph of which tiles are connected in which rooms
+/// 3.  Connect the entire graph of rooms by hallways
+/// 4.  Merge the hallways with the floors
+/// 5.  Strip out all the unnecessary halls (double wide, dead end)
+/// 6.  Add wall tiles around the rooms, and doors where the hallways enter the rooms
 pub fn generate_map(complexity: u32, width: usize, height: usize) -> Vec<Tile> {
     let room_count = min(MIN_ROOMS + (complexity / 3) as u8, MAX_ROOMS);
 
@@ -28,16 +38,16 @@ pub fn generate_map(complexity: u32, width: usize, height: usize) -> Vec<Tile> {
     let graph = graph_tiles(&rooms, width, height);
     let halls = generate_halls(graph, width, height);
     let rooms_and_halls = add_halls(rooms, halls);
-    for (i, k) in rooms_and_halls.iter().map(|r| r.kind).enumerate() {
-        eprint!("{}", k);
-        if i % width == width - 1 { eprintln!(); }
-    }
     let trimmed = trim_halls(rooms_and_halls, width, height);
     let tiles = add_walls(trimmed, width, height);
 
     tiles
 }
 
+/// The first step of room creation is to create the tiles.
+///
+/// Some rectangles are generated randomly, and placed on the map. Some collisions are allowed, but
+/// only up to a maximum number of times so that the map always has some disconnnected rooms.
 fn generate_tiles(room_count: u8, width: usize, height: usize) -> Vec<Tile>{
     let mut rng = thread_rng();
     let mut merges_available: usize = room_count as usize / 2;
@@ -84,6 +94,8 @@ fn generate_tiles(room_count: u8, width: usize, height: usize) -> Vec<Tile>{
     tiles
 }
 
+/// Turns the set of floor/empty tiles into a graph of numbered rooms which will later be used to
+/// ensure that the whole map is connected.
 fn graph_tiles(tiles: &Vec<Tile>, width: usize, height: usize) -> Vec<u8> {
     tiles.iter().enumerate()
         .fold((vec![0; tiles.len()], 1), |(graph, room_index), (index, tile)|
@@ -95,6 +107,8 @@ fn graph_tiles(tiles: &Vec<Tile>, width: usize, height: usize) -> Vec<u8> {
         ).0
 }
 
+/// Applies a flood fill to a grid (represented as a vector with width and height), based on
+/// another grid of the same dimensions and a predicate
 fn flood<T, F: Fn(&T) -> bool>(mut graph: Vec<u8>, room_index: u8, tile_index: usize, width: usize, height: usize, tiles: &Vec<T>, pred: &F) -> Vec<u8> {
     if graph[tile_index] > 0 { return graph; }
     if pred(&tiles[tile_index]) {
@@ -110,6 +124,9 @@ fn flood<T, F: Fn(&T) -> bool>(mut graph: Vec<u8>, room_index: u8, tile_index: u
     graph
 }
 
+/// Connects the graph of tiles by hallways. Starting with room 1, hallways are generated between
+/// a random tile in a connected room and a tile in a random disconnected room. In the end, a vec
+/// of booleans is produced, where true represents a "hall" tile and false an "empty".
 fn generate_halls(graph: Vec<u8>, width: usize, height: usize) -> Vec<bool> {
     let room_count = *graph.iter().max().unwrap();
     let row = |i| i / width;
@@ -147,6 +164,9 @@ fn generate_halls(graph: Vec<u8>, width: usize, height: usize) -> Vec<bool> {
     halls
 }
 
+/// Picks a random tile from the room with the given index, returning the index of the chosen tile
+///
+/// Requires: `graph.iter().any(|r| r == target) == true`
 fn find_tile_in_room(graph: &Vec<u8>, target: u8) -> usize {
     let options: Vec<usize> =
         graph.iter().enumerate()
@@ -157,6 +177,8 @@ fn find_tile_in_room(graph: &Vec<u8>, target: u8) -> usize {
         .expect(&format!("find_tile_in_room: room {} should have some cells", target))
 }
 
+/// Merges the list of hall flags with the actual tiles. Tiles which are empty but have a hall flag
+/// set to true are turned into halls, while others are unaffected
 fn add_halls(rooms: Vec<Tile>, halls: Vec<bool>) -> Vec<Tile> {
     rooms
         .iter()
@@ -166,22 +188,7 @@ fn add_halls(rooms: Vec<Tile>, halls: Vec<bool>) -> Vec<Tile> {
         .collect()
 }
 
-fn add_walls(tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
-    // TODO: place walls inside the rooms to prevent halls along edges?
-    (0..width * height)
-        .map(|i| Direction::variants().into_iter()
-                .map(|d| Map::neighbouring_tile_index(i, width, height, d))
-                .flat_map(|o| o.map(|n| tiles[n].kind == TileType::Floor).and_then(|b| if b { Some(true) } else { None }))
-                .count())
-        .zip(tiles.iter())
-        .map(|(c, t)| match t.kind {
-                TileType::Empty if c > 0    => Tile::new(TileType::Wall),
-                TileType::Hall if c >= 2    => Tile::new(TileType::Door),
-                _                           => t.clone(),
-            })
-        .collect()
-}
-
+/// Trims excess halls from the set of tiles. Excess halls are either fat or a dead end.
 fn trim_halls(tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
     let no_fats = (0..width * height)
         .fold(tiles, |mut tiles, index|
@@ -194,23 +201,15 @@ fn trim_halls(tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
     (0..width * height).fold(no_fats, |tiles, index| remove_dead_end(tiles, index, width, height))
 }
 
-fn remove_dead_end(mut tiles: Vec<Tile>, index: usize, width: usize, height: usize) -> Vec<Tile> {
-    let neighbours: Vec<usize> = Direction::cardinals()
-        .into_iter()
-        .map(|d| Map::neighbouring_tile_index(index, width, height, d))
-        .flat_map(|n| n)
-        .filter(|n| tiles[*n].kind != TileType::Empty)
-        .collect();
-    if neighbours.len() > 1 { return tiles; }
-    tiles[index].kind = TileType::Empty;
-    if neighbours.len() > 0 {
-        remove_dead_end(tiles, neighbours[0], width, height)
-    } else {
-        tiles
-    }
-}
-
-
+/// Determines whether a hallway is "fat". A fat hallway is one that can be removed without
+/// creating a dead end.
+///
+/// Example: a hallway on the spot marked with O would be a "fat" hallway
+/// ```
+/// ###
+///  O#
+///   #
+/// ```
 fn is_fat_hallway(tiles: &Vec<Tile>, index: usize, width: usize, height: usize) -> bool {
     if tiles[index].kind != TileType::Hall { return false; }
     let neighbours: String =
@@ -230,4 +229,40 @@ fn is_fat_hallway(tiles: &Vec<Tile>, index: usize, width: usize, height: usize) 
         "........" => true,
         _ => false,
     }
+}
+
+/// Recursively removes dead ends. A dead end is a hallway which only has one adjacent walkable
+/// space (hall/floor).
+fn remove_dead_end(mut tiles: Vec<Tile>, index: usize, width: usize, height: usize) -> Vec<Tile> {
+    let neighbours: Vec<usize> = Direction::cardinals()
+        .into_iter()
+        .map(|d| Map::neighbouring_tile_index(index, width, height, d))
+        .flat_map(|n| n)
+        .filter(|n| tiles[*n].kind != TileType::Empty)
+        .collect();
+    if neighbours.len() > 1 { return tiles; }
+    tiles[index].kind = TileType::Empty;
+    if neighbours.len() > 0 {
+        remove_dead_end(tiles, neighbours[0], width, height)
+    } else {
+        tiles
+    }
+}
+
+/// Adds a wall tile wherever a floor tile meets an empty tile, or a door where a hall tile meets
+/// a floor tile.
+fn add_walls(tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
+    // TODO: place walls inside the rooms to prevent halls along edges?
+    (0..width * height)
+        .map(|i| Direction::variants().into_iter()
+                .map(|d| Map::neighbouring_tile_index(i, width, height, d))
+                .flat_map(|o| o.map(|n| tiles[n].kind == TileType::Floor).and_then(|b| if b { Some(true) } else { None }))
+                .count())
+        .zip(tiles.iter())
+        .map(|(c, t)| match t.kind {
+                TileType::Empty if c > 0    => Tile::new(TileType::Wall),
+                TileType::Hall if c >= 2    => Tile::new(TileType::Door),
+                _                           => t.clone(),
+            })
+        .collect()
 }

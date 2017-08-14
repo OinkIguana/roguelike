@@ -85,15 +85,14 @@ fn generate_tiles(room_count: u8, width: usize, height: usize) -> Vec<Tile>{
 }
 
 fn graph_tiles(tiles: &Vec<Tile>, width: usize, height: usize) -> Vec<u8> {
-    let mut graph = vec![0; tiles.len()];
-    let mut room_index = 1;
-    for (index, tile) in tiles.iter().enumerate() {
-        if tile.kind == TileType::Floor && graph[index] == 0 {
-            graph = flood(graph, room_index, index, width, height, tiles, &|tile| tile.kind == TileType::Floor);
-            room_index += 1;
-        }
-    }
-    graph
+    tiles.iter().enumerate()
+        .fold((vec![0; tiles.len()], 1), |(graph, room_index), (index, tile)|
+            if tile.kind == TileType::Floor && graph[index] == 0 {
+                (flood(graph, room_index, index, width, height, tiles, &|tile| tile.kind == TileType::Floor), room_index + 1)
+            } else {
+                (graph, room_index)
+            }
+        ).0
 }
 
 fn flood<T, F: Fn(&T) -> bool>(mut graph: Vec<u8>, room_index: u8, tile_index: usize, width: usize, height: usize, tiles: &Vec<T>, pred: &F) -> Vec<u8> {
@@ -149,12 +148,13 @@ fn generate_halls(graph: Vec<u8>, width: usize, height: usize) -> Vec<bool> {
 }
 
 fn find_tile_in_room(graph: &Vec<u8>, target: u8) -> usize {
-    let mut rng = thread_rng();
-    let mut options: Vec<usize> = Vec::new();
-    for (index, room) in graph.iter().enumerate() {
-        if *room == target { options.push(index); }
-    }
-    *rng.choose(&options).expect(&format!("find_tile_in_room: room {} should have some cells", target))
+    let options: Vec<usize> =
+        graph.iter().enumerate()
+            .filter_map(|(index, room)| if *room == target { Some(index) } else { None })
+            .collect();
+    *thread_rng()
+        .choose(&options)
+        .expect(&format!("find_tile_in_room: room {} should have some cells", target))
 }
 
 fn add_halls(rooms: Vec<Tile>, halls: Vec<bool>) -> Vec<Tile> {
@@ -167,7 +167,8 @@ fn add_halls(rooms: Vec<Tile>, halls: Vec<bool>) -> Vec<Tile> {
 }
 
 fn add_walls(tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
-    (0..tiles.len())
+    // TODO: place walls inside the rooms to prevent halls along edges?
+    (0..width * height)
         .map(|i| Direction::variants().into_iter()
                 .map(|d| Map::neighbouring_tile_index(i, width, height, d))
                 .flat_map(|o| o.map(|n| tiles[n].kind == TileType::Floor).and_then(|b| if b { Some(true) } else { None }))
@@ -181,16 +182,16 @@ fn add_walls(tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
         .collect()
 }
 
-fn trim_halls(mut tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
-    for index in 0..width * height {
-        if is_fat_hallway(&tiles, index, width, height) {
-            tiles[index].kind = TileType::Empty;
-        }
-    }
-    for index in 0..width * height {
-        tiles = remove_dead_end(tiles, index, width, height);
-    }
-    tiles
+fn trim_halls(tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
+    let no_fats = (0..width * height)
+        .fold(tiles, |mut tiles, index|
+            if is_fat_hallway(&tiles, index, width, height) {
+                tiles[index].kind = TileType::Empty;
+                tiles
+            } else {
+                tiles
+            });
+    (0..width * height).fold(no_fats, |tiles, index| remove_dead_end(tiles, index, width, height))
 }
 
 fn remove_dead_end(mut tiles: Vec<Tile>, index: usize, width: usize, height: usize) -> Vec<Tile> {

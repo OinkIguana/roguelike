@@ -16,14 +16,14 @@ impl TileType {
     /// The symbol that represents this TileType
     ///
     /// *   `Floor` → `.`
-    /// *   `Wall`  → `x`
+    /// *   `Wall`  → `|`
     /// *   `Hall`  → `#`
     /// *   `Door`  → `+`
     /// *   `Empty` → ` `
     fn symbol(&self) -> char {
         match *self {
             TileType::Floor => '.',
-            TileType::Wall  => 'x',
+            TileType::Wall  => '|',
             TileType::Hall  => '#',
             TileType::Door  => '+',
             TileType::Empty => ' ',

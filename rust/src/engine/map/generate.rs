@@ -43,8 +43,8 @@ fn generate_tiles(room_count: u8, width: usize, height: usize) -> Vec<Tile>{
     let mut merges_available: usize = room_count as usize / 2;
 
     let mut tiles = vec![Tile::new(TileType::Empty); width * height];
-    let x_range = Range::new(0, width);
-    let y_range = Range::new(0, height);
+    let x_range = Range::new(1, width);
+    let y_range = Range::new(1, height);
     let w_range = Normal::new(16., 1.);
     let h_range = Normal::new(6., 1.);
     let coll_range = Range::new(0, 10);
@@ -60,7 +60,7 @@ fn generate_tiles(room_count: u8, width: usize, height: usize) -> Vec<Tile>{
                 h: h_range.ind_sample(&mut rng) as usize + 2,
             };
 
-            if room.x + room.w >= width || room.y + room.h > height { continue; }
+            if room.x + room.w >= width || room.y + room.h >= height { continue; }
 
             let collides = rooms.iter().map(|ref rm| rm.collides(&room)).filter(|b| *b).count();
             if collides > 0 {
@@ -167,7 +167,18 @@ fn add_halls(rooms: Vec<Tile>, halls: Vec<bool>) -> Vec<Tile> {
 }
 
 fn add_walls(tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {
-    tiles
+    (0..tiles.len())
+        .map(|i| Direction::variants().into_iter()
+                .map(|d| Map::neighbouring_tile_index(i, width, height, d))
+                .flat_map(|o| o.map(|n| tiles[n].kind == TileType::Floor).and_then(|b| if b { Some(true) } else { None }))
+                .count())
+        .zip(tiles.iter())
+        .map(|(c, t)| match t.kind {
+                TileType::Empty if c > 0    => Tile::new(TileType::Wall),
+                TileType::Hall if c >= 2    => Tile::new(TileType::Door),
+                _                           => t.clone(),
+            })
+        .collect()
 }
 
 fn trim_halls(mut tiles: Vec<Tile>, width: usize, height: usize) -> Vec<Tile> {

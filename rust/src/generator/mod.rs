@@ -1,11 +1,30 @@
-// TODO: make this into a trait, and move the implementation out of the engine
-
 use std::cmp::min;
 use rand::{thread_rng,Rng};
 use rand::distributions::{IndependentSample,Range,Normal};
-use engine::Direction;
-use super::Map;
-use super::tile::{Tile,TileType};
+use engine::{Map,Tile,TileType,Direction,Generator};
+
+
+pub struct Standard;
+impl Generator for Standard {
+    /// Given a complexity and dimensions, an entire dungeon map is created
+    ///
+    /// 1.  Generate the set of tiles, some floors and some empty
+    /// 2.  Make a graph of which tiles are connected in which rooms
+    /// 3.  Connect the entire graph of rooms by hallways
+    /// 4.  Merge the hallways with the floors
+    /// 5.  Strip out all the unnecessary halls (double wide, dead end)
+    /// 6.  Add wall tiles around the rooms, and doors where the hallways enter the rooms
+    fn generate(&self, complexity: u32, width: usize, height: usize) -> Map {
+        let room_count = min(MIN_ROOMS + (complexity / 3) as u8, MAX_ROOMS);
+        let rooms = generate_tiles(room_count, width, height);
+        let graph = graph_tiles(&rooms);
+        let halls = generate_halls(graph);
+        let rooms_and_halls = add_halls(rooms, halls);
+        let trimmed = trim_halls(rooms_and_halls);
+        let tiles = add_walls(trimmed);
+        Map{ tiles: tiles.grid, width, height }
+    }
+}
 
 const MIN_ROOMS: u8 = 5;
 const MAX_ROOMS: u8 = 30;
@@ -27,25 +46,6 @@ impl Rectangle {
         rect.x + rect.w >= self.x && rect.x <= self.x + self.w &&
         rect.y + rect.h >= self.y && rect.y <= self.y + self.h
     }
-}
-
-/// Given a complexity and dimensions, an entire dungeon map is created
-///
-/// 1.  Generate the set of tiles, some floors and some empty
-/// 2.  Make a graph of which tiles are connected in which rooms
-/// 3.  Connect the entire graph of rooms by hallways
-/// 4.  Merge the hallways with the floors
-/// 5.  Strip out all the unnecessary halls (double wide, dead end)
-/// 6.  Add wall tiles around the rooms, and doors where the hallways enter the rooms
-pub fn generate_map(complexity: u32, width: usize, height: usize) -> Vec<Tile> {
-    let room_count = min(MIN_ROOMS + (complexity / 3) as u8, MAX_ROOMS);
-    let rooms = generate_tiles(room_count, width, height);
-    let graph = graph_tiles(&rooms);
-    let halls = generate_halls(graph);
-    let rooms_and_halls = add_halls(rooms, halls);
-    let trimmed = trim_halls(rooms_and_halls);
-    let tiles = add_walls(trimmed);
-    tiles.grid
 }
 
 /// The first step of room creation is to create the tiles.

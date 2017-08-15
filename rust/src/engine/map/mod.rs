@@ -1,11 +1,11 @@
 mod tile;
-mod generate;
+mod generator;
 mod populator;
 
 use std::mem::replace;
-use inputter::Action;
+use super::Action;
 use engine::Direction;
-use self::generate::generate_map;
+pub use self::generator::Generator;
 pub use self::populator::Populator;
 
 pub use self::tile::{Tile,TileType};
@@ -22,11 +22,10 @@ const MIN_HEIGHT: f32 = 20.0;
 
 impl Map {
     /// Creates a new map with the provided dimensions
-    pub fn new(complexity: u32) -> Map {
+    pub fn new<T: Generator>(complexity: u32, generator: &T) -> Map {
         let height: usize = (MIN_HEIGHT + GROWTH_FACTOR * complexity as f32).round() as usize;
         let width: usize = (1.618 * height as f32 * 2.0).round() as usize;
-        let tiles = generate_map(complexity, width, height);
-        Map{ tiles, width, height }
+        generator.generate(complexity, width, height)
     }
 
     /// Given a populator, poulates the map

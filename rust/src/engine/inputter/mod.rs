@@ -1,4 +1,4 @@
-use engine::Direction;
+use super::Direction;
 
 /// An Inputter is used as an interface that the user can provide input which is passed to the
 /// Engine

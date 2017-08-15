@@ -1,4 +1,4 @@
-use engine::map::{Map,Populator};
+use engine::{Map,Populator};
 
 /// A Populator for an easy game
 pub struct Easy;

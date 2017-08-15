@@ -1,5 +1,5 @@
 use super::Actor;
-use inputter::Action;
+use super::super::Action;
 
 #[derive(Clone)]
 pub struct Player;

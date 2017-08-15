@@ -1,4 +1,4 @@
-use engine::state::State;
+use super::state::State;
 
 /// An Outputter is used to display the game to the user
 pub trait Outputter {

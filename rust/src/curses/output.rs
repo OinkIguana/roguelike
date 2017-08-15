@@ -1,7 +1,7 @@
 use std::str::from_utf8;
-use engine::state::State;
+use engine::State;
 use pancurses::{Window};
-use outputter::Outputter;
+use engine::Outputter;
 
 pub struct Output<'a> {
     window: &'a Window,

@@ -2,9 +2,8 @@ extern crate rand;
 extern crate pancurses;
 
 mod engine;
-mod outputter;
-mod inputter;
 mod populator;
+mod generator;
 mod curses;
 
 use pancurses::{initscr, endwin, noecho};

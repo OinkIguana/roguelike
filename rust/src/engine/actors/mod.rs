@@ -1,6 +1,6 @@
 mod player;
 use super::map::TileType;
-use inputter::Action;
+use super::inputter::Action;
 
 /// An Actor is the basic building block of every item or character in the game
 #[allow(unused_variables)]

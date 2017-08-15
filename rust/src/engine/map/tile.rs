@@ -1,6 +1,6 @@
 use std::fmt::{Display,Formatter,Result};
 use super::super::actors::Actor;
-use inputter::Action;
+use super::super::Action;
 
 /// A TileType determines the geography of each tile
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]

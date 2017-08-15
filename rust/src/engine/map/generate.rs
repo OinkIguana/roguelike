@@ -8,7 +8,6 @@ use super::tile::{Tile,TileType};
 const MIN_ROOMS: u8 = 5;
 const MAX_ROOMS: u8 = 30;
 
-// TODO: make a struct for passing around a vec + width/height
 struct Grid<T> {
     width: usize,
     height: usize,

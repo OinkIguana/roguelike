@@ -1,5 +1,6 @@
 use inputter::Action;
 use super::map::Map;
+use super::super::populator::Easy;
 
 /// A `State` represents the current state of the game. By serializing the state, the entire game
 /// should be reproducable exactly as it was before.
@@ -18,7 +19,7 @@ pub struct State { // TODO: are all the fields pub?
 impl State {
     /// Creates the initial state
     pub fn new() -> State {
-        State{ map: Map::new(1), score: 0, level: 1, quit: false }
+        State{ map: Map::new(1).populate(&Easy{}), score: 0, level: 1, quit: false }
     }
 
     /// Sets the quit field of the State

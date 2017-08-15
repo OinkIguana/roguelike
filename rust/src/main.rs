@@ -4,6 +4,7 @@ extern crate pancurses;
 mod engine;
 mod outputter;
 mod inputter;
+mod populator;
 mod curses;
 
 use pancurses::{initscr, endwin, noecho};

@@ -1,10 +1,12 @@
 mod tile;
 mod generate;
+mod populator;
 
 use std::mem::replace;
 use inputter::Action;
 use engine::Direction;
 use self::generate::generate_map;
+pub use self::populator::Populator;
 
 pub use self::tile::{Tile,TileType};
 
@@ -27,10 +29,17 @@ impl Map {
         Map{ tiles, width, height }
     }
 
+    /// Given a populator, poulates the map
+    pub fn populate<T: Populator>(self, populator: &T) -> Map {
+        populator.populate(self)
+    }
+
+    /// Has every tile process an Action to produce the actual Action that should be taken
     pub fn process(&self, action: Action) -> Vec<Action> {
         self.tiles.iter().map(|tile| tile.process(action.clone())).collect()
     }
 
+    /// Has each tile react to the Action that it produced from process, actually performing the Action
     pub fn react(mut self, action: Action, tile_index: usize) -> Map {
         match action {
             Action::Move(dir) => {
@@ -45,10 +54,12 @@ impl Map {
         }
     }
 
+    /// Gets the index of the neighbouring tile, using the dimensions of the current map
     pub fn get_neighbouring_tile_index(&self, tile_index: usize, direction: Direction) -> Option<usize> {
         Map::neighbouring_tile_index(tile_index, self.width, self.height, direction)
     }
 
+    /// Calculates the index of a neighbouring tile based on the dimensions of a grid
     pub fn neighbouring_tile_index(tile_index: usize, width: usize, height: usize, direction: Direction) -> Option<usize> {
         match direction {
             Direction::N if tile_index >= width =>

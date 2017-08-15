@@ -29,10 +29,12 @@ impl<I: Inputter, O: Outputter> Engine<I, O> {
     }
 }
 
-/// Directions correspond to the cardinal directions and are used to indicate which way to move
+/// Directions correspond to the cardinal directions and are used to indicate which side to move
+/// to, attack, and interact with
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum Direction { NW, N, NE, E, SE, S, SW, W }
 impl Direction {
+    /// A vector of the 4 cardinal directions, N, E, S, W
     pub fn cardinals() -> Vec<Direction> {
         vec![
             Direction::N,
@@ -41,6 +43,7 @@ impl Direction {
             Direction::W,
         ]
     }
+    /// A vector of all the the variants, starting from NW and cycling clockwise around the compass
     pub fn variants() -> Vec<Direction> {
         vec![
             Direction::NW,

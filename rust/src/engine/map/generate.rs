@@ -1,3 +1,5 @@
+// TODO: make this into a trait, and move the implementation out of the engine
+
 use std::cmp::min;
 use rand::{thread_rng,Rng};
 use rand::distributions::{IndependentSample,Range,Normal};

@@ -1,4 +1,3 @@
-mod player;
 use super::map::TileType;
 use super::inputter::Action;
 
@@ -45,5 +44,3 @@ impl Clone for Box<Actor> {
         self.clone_box()
     }
 }
-
-pub use self::player::Player;

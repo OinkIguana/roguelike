@@ -3,12 +3,13 @@ mod generator;
 mod populator;
 
 use std::mem::replace;
-use super::Action;
+use rand::{thread_rng,Rng};
+use super::{Action,Actor};
 use engine::Direction;
 pub use self::generator::Generator;
 pub use self::populator::Populator;
-
 pub use self::tile::{Tile,TileType};
+
 
 /// A Map contains tiles in a grid, which make up the whole dungeon
 pub struct Map {
@@ -83,5 +84,20 @@ impl Map {
                 .and_then(|n| Map::neighbouring_tile_index(n, width, height, Direction::W)),
             _ => None
         }
+    }
+
+    pub fn fill_tile<T: Actor + 'static>(mut self, index: usize, contents: T) -> Map {
+        self.tiles[index].fill(Box::new(contents));
+        self
+    }
+
+    pub fn get_random_open_tile(&self) -> Option<usize> {
+        self.find_random_tile(|ref t| t.can_hold_contents() && t.contents().is_none())
+    }
+
+    /// Finds the index of a random tile that matches a predicate
+    pub fn find_random_tile<F: Fn(&Tile) -> bool>(&self, pred: F) -> Option<usize> {
+        let options: Vec<usize> = self.tiles.iter().enumerate().filter(|&(_, tile)| pred(tile)).map(|(i, _)| i).collect();
+        thread_rng().choose(&options).map(|i| *i)
     }
 }

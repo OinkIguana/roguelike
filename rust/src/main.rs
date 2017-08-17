@@ -5,6 +5,7 @@ mod engine;
 mod populator;
 mod generator;
 mod curses;
+mod actors;
 
 use pancurses::{initscr, endwin, noecho};
 

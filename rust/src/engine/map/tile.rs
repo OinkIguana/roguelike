@@ -1,5 +1,5 @@
 use std::fmt::{Display,Formatter,Result};
-use super::super::actors::Actor;
+use super::super::actor::Actor;
 use super::super::Action;
 
 /// A TileType determines the geography of each tile
@@ -84,6 +84,17 @@ impl Tile {
 
     pub fn process(&self, action: Action) -> Action {
         self.contents.as_ref().map_or(Action::Idle, |ref c| c.react(action))
+    }
+
+    pub fn contents(&self) -> &Option<Box<Actor>> {
+        &self.contents
+    }
+
+    pub fn can_hold_contents(&self) -> bool {
+        match self.kind {
+            TileType::Floor | TileType::Hall | TileType::Door => true,
+            _ => false,
+        }
     }
 }
 

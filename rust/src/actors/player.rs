@@ -1,5 +1,5 @@
-use super::Actor;
-use super::super::Action;
+use engine::Actor;
+use engine::Action;
 
 #[derive(Clone)]
 pub struct Player;

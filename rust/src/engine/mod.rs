@@ -1,7 +1,7 @@
 mod state;
 mod map;
 mod actor;
-
+mod behavior;
 mod outputter;
 mod inputter;
 
@@ -9,7 +9,8 @@ pub use self::outputter::Outputter;
 pub use self::inputter::{Inputter,Action};
 pub use self::state::State;
 pub use self::map::{Map,Populator,TileType,Tile,Generator};
-pub use self::actor::{Actor};
+pub use self::actor::Actor;
+pub use self::behavior::*;
 
 /// The Engine encapsulates the behaviours of the game
 pub struct Engine<I: Inputter, O: Outputter> {

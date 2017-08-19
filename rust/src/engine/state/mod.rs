@@ -1,5 +1,4 @@
-use super::inputter::Action;
-use super::map::Map;
+use super::{Action,Behavior,Map};
 use populator::Easy;
 use generator::Standard;
 
@@ -40,10 +39,10 @@ impl State {
         }
     }
 
-    fn process_all(self, actions: Vec<Action>) -> State {
+    fn process_all(self, behaviors: Vec<Box<Behavior>>) -> State {
         let mut map = self.map;
-        for (index, action) in actions.iter().enumerate() {
-            map = map.react(action.clone(), index)
+        for (index, behavior) in behaviors.into_iter().enumerate() {
+            behavior.exec(index, &mut map);
         }
         State{ map, score: self.score, level: self.level, quit: self.quit }
     }

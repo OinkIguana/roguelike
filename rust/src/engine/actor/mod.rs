@@ -1,11 +1,10 @@
-use super::map::TileType;
-use super::inputter::Action;
+use super::{TileType,Action,Behavior,perform};
 
 /// An Actor is the basic building block of every item or character in the game
 #[allow(unused_variables)]
 pub trait Actor: ActorClone {
-    /// Consumes an input action and produces the corresponding game action that should be taken
-    fn react(&self, action: Action) -> Action { Action::Idle }
+    /// Consumes an input action and produces the Actor's Behavior
+    fn react(&self, action: Action) -> Box<Behavior>;
 
     fn can_be_stepped_on(&self) -> bool { false }
     fn step_on(&self, other: &Actor) {}

@@ -2,10 +2,8 @@ mod tile;
 mod generator;
 mod populator;
 
-use std::mem::replace;
 use rand::{thread_rng,Rng};
-use super::{Action,Actor};
-use engine::Direction;
+use super::{Action,Actor,Behavior,Direction};
 pub use self::generator::Generator;
 pub use self::populator::Populator;
 pub use self::tile::{Tile,TileType};
@@ -35,23 +33,8 @@ impl Map {
     }
 
     /// Has every tile process an Action to produce the actual Action that should be taken
-    pub fn process(&self, action: Action) -> Vec<Action> {
+    pub fn process(&self, action: Action) -> Vec<Box<Behavior>> {
         self.tiles.iter().map(|tile| tile.process(action.clone())).collect()
-    }
-
-    /// Has each tile react to the Action that it produced from process, actually performing the Action
-    pub fn react(mut self, action: Action, tile_index: usize) -> Map {
-        match action {
-            Action::Move(dir) => {
-                for neighbour in self.get_neighbouring_tile_index(tile_index, dir) {
-                    let (a, b) = self.tiles[tile_index].clone().move_to(self.tiles[neighbour].clone());
-                    replace(&mut self.tiles[tile_index], a);
-                    replace(&mut self.tiles[neighbour], b);
-                }
-                self
-            }
-            _ => self
-        }
     }
 
     /// Gets the index of the neighbouring tile, using the dimensions of the current map

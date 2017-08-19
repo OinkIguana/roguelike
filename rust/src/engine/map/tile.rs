@@ -1,6 +1,5 @@
 use std::fmt::{Display,Formatter,Result};
-use super::super::actor::Actor;
-use super::super::Action;
+use super::super::{Action,Actor,Behavior,start};
 
 /// A TileType determines the geography of each tile
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -82,8 +81,8 @@ impl Tile {
         self.kind.symbol()
     }
 
-    pub fn process(&self, action: Action) -> Action {
-        self.contents.as_ref().map_or(Action::Idle, |ref c| c.react(action))
+    pub fn process(&self, action: Action) -> Box<Behavior> {
+        self.contents.as_ref().map_or(start(), |ref c| c.react(action))
     }
 
     pub fn contents(&self) -> &Option<Box<Actor>> {

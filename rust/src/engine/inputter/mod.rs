@@ -8,8 +8,7 @@ pub trait Inputter {
 }
 
 /// An Action describes the actions that the player can take
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Action {
     Idle,
     Attack(Direction),

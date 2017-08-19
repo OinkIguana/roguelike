@@ -1,10 +1,10 @@
-use super::{TileType,Action,Behavior};
+use super::{TileType,Action,Behavior,Perform};
 
 /// An Actor is the basic building block of every item or character in the game
 #[allow(unused_variables)]
 pub trait Actor: ActorClone {
     /// Consumes an input action and produces the Actor's Behavior
-    fn react(&self, action: Action) -> Box<Behavior>;
+    fn react(&self, action: Action) -> Box<Behavior> { Box::new(Perform(Action::Idle)) }
 
     fn can_be_stepped_on(&self) -> bool { false }
     fn step_on(&mut self, other: &mut Actor) {}
@@ -19,6 +19,8 @@ pub trait Actor: ActorClone {
     fn be_attacked(&mut self, other: &mut Actor) {}
 
     fn on_destroy(&mut self) {}
+
+    fn gain_money(&mut self, value: i32) {}
 
     fn symbol(&self) -> char { ' ' }
     fn can_enter(&self, tile: TileType) -> bool {

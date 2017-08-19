@@ -16,7 +16,11 @@ impl Behavior for Perform {
     fn exec(&self, i: usize, map: &mut Map) -> bool {
         match self.0 {
             Action::Move(dir) => {
-                if let Some(neighbour) = map.get_neighbouring_tile_index(i, dir) {
+                if let (Some(neighbour), Some(mut me)) = (map.get_neighbouring_tile_index(i, dir), map.tiles[i].contents().clone()) {
+                    if let Some(mut them) = map.tiles[neighbour].contents().clone() {
+                        me.step_on(&mut *them);
+                        them.be_stepped_on(&mut *me);
+                    }
                     let (a, b) = map.tiles[i].clone().move_to(map.tiles[neighbour].clone());
                     replace(&mut map.tiles[i], a);
                     replace(&mut map.tiles[neighbour], b);
@@ -26,27 +30,23 @@ impl Behavior for Perform {
                 }
             }
             Action::Attack(dir) => {
-                if let Some(neighbour) = map.get_neighbouring_tile_index(i, dir) {
-                    if let (Some(mut me), Some(mut them)) = (map.tiles[i].contents().clone(), map.tiles[neighbour].contents().clone()) {
+                if let (Some(neighbour), Some(mut me)) = (map.get_neighbouring_tile_index(i, dir), map.tiles[i].contents().clone()) {
+                    if let Some(mut them) = map.tiles[neighbour].contents().clone() {
                         me.attack(&mut *them);
                         them.be_attacked(&mut *me);
-                        true
-                    } else {
-                        false
                     }
+                    true
                 } else {
                     false
                 }
             }
             Action::Interact(dir) => {
-                if let Some(neighbour) = map.get_neighbouring_tile_index(i, dir) {
-                    if let (Some(mut me), Some(mut them)) = (map.tiles[i].contents().clone(), map.tiles[neighbour].contents().clone()) {
+                if let (Some(neighbour), Some(mut me)) = (map.get_neighbouring_tile_index(i, dir), map.tiles[i].contents().clone()) {
+                    if let Some(mut them) = map.tiles[neighbour].contents().clone() {
                         me.interact(&mut *them);
                         them.be_interacted_with(&mut *me);
-                        true
-                    } else {
-                        false
                     }
+                    true
                 } else {
                     false
                 }
@@ -80,6 +80,24 @@ impl<T: Behavior> Behavior for IfOpen<T> {
             .get_neighbouring_tile_index(i, self.0)
             .map(|n| &map.tiles[n])
             .map(|t| map.tiles[i].contents().clone().map(|a| a.can_enter(t.kind)).unwrap_or(false) && t.contents().is_none())
+            .unwrap_or(false);
+        if open {
+            self.1.exec(i, map)
+        } else {
+            false
+        }
+    }
+}
+
+pub struct IfEnterable<T: Behavior>(pub Direction, pub T);
+impl<T: Behavior> Behavior for IfEnterable<T> {
+    fn exec(&self, i: usize, map: &mut Map) -> bool {
+        let open = map
+            .get_neighbouring_tile_index(i, self.0)
+            .map(|n| &map.tiles[n])
+            .map(|t|
+                map.tiles[i].contents().clone().map(|a| a.can_enter(t.kind)).unwrap_or(false) &&
+                t.contents().clone().map(|a| a.can_be_stepped_on()).unwrap_or(true))
             .unwrap_or(false);
         if open {
             self.1.exec(i, map)

@@ -5,7 +5,7 @@ use engine::{Actor,Action,Behavior,Direction,start};
 pub struct Bat;
 
 impl Actor for Bat {
-    fn react(&self, action: Action) -> Box<Behavior> {
+    fn react(&self, _: Action) -> Box<Behavior> {
         let mut dirs = Direction::cardinals();
         thread_rng().shuffle(&mut dirs);
         start()

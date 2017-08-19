@@ -1,10 +1,9 @@
-use std::iter::FromIterator;
 use std::mem::replace;
 use super::{Action,Map};
 
 pub struct Start;
 impl Behavior for Start {
-    fn exec(&self, i: usize, map: &mut Map) {}
+    fn exec(&self, _: usize, _: &mut Map) {}
 }
 
 pub struct Perform(Action);

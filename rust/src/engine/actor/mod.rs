@@ -1,4 +1,4 @@
-use super::{TileType,Action,Behavior,perform};
+use super::{TileType,Action,Behavior};
 
 /// An Actor is the basic building block of every item or character in the game
 #[allow(unused_variables)]

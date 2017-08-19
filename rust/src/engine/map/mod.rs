@@ -74,12 +74,20 @@ impl Map {
         self
     }
 
+    pub fn fill_random_tile<T: Actor + 'static>(mut self, contents: T) -> Map {
+        match self.get_random_open_tile() {
+            Some(t) => self.tiles[t].fill(Box::new(contents)),
+            None => ()
+        }
+        self
+    }
+
     pub fn get_random_open_tile(&self) -> Option<usize> {
-        self.find_random_tile(|ref t| t.can_hold_contents() && t.contents().is_none())
+        self.get_random_tile(|ref t| t.can_hold_contents() && t.contents().is_none())
     }
 
     /// Finds the index of a random tile that matches a predicate
-    pub fn find_random_tile<F: Fn(&Tile) -> bool>(&self, pred: F) -> Option<usize> {
+    pub fn get_random_tile<F: Fn(&Tile) -> bool>(&self, pred: F) -> Option<usize> {
         let options: Vec<usize> = self.tiles.iter().enumerate().filter(|&(_, tile)| pred(tile)).map(|(i, _)| i).collect();
         thread_rng().choose(&options).map(|i| *i)
     }

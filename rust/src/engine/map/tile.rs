@@ -1,5 +1,5 @@
 use std::fmt::{Display,Formatter,Result};
-use super::super::{Action,Actor,Behavior,start};
+use super::super::{Action,Actor,Behavior,Perform};
 
 /// A TileType determines the geography of each tile
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -52,8 +52,7 @@ impl Tile {
     /// Move this Cell's contents to the provided cell, destroying what was there
     pub fn move_to(self, tile: Tile) -> (Tile, Tile) {
         match self.contents {
-            None => (self, tile),
-            Some(ref actor) if actor.can_enter(&tile.kind) =>
+            Some(ref actor) =>
                 (   // TODO: any way to avoid cloning here?
                     Tile{ kind: self.kind, contents: None },
                     Tile{ kind: tile.kind, contents: self.contents.clone() },
@@ -82,7 +81,7 @@ impl Tile {
     }
 
     pub fn process(&self, action: Action) -> Box<Behavior> {
-        self.contents.as_ref().map_or(start(), |ref c| c.react(action))
+        self.contents.as_ref().map_or(Box::new(Perform(Action::Idle)), |ref c| c.react(action))
     }
 
     pub fn contents(&self) -> &Option<Box<Actor>> {

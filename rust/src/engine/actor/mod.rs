@@ -7,23 +7,23 @@ pub trait Actor: ActorClone {
     fn react(&self, action: Action) -> Box<Behavior>;
 
     fn can_be_stepped_on(&self) -> bool { false }
-    fn step_on(&self, other: &Actor) {}
-    fn be_stepped_on(&self, other: &Actor) {}
+    fn step_on(&mut self, other: &mut Actor) {}
+    fn be_stepped_on(&mut self, other: &mut Actor) {}
 
     fn can_be_interacted_with(&self) -> bool { false }
-    fn interact(&self, other: &Actor) {}
-    fn be_interacted_with(&self, other: &Actor) {}
+    fn interact(&mut self, other: &mut Actor) {}
+    fn be_interacted_with(&mut self, other: &mut Actor) {}
 
     fn can_be_attacked(&self) -> bool { false }
-    fn attack(&self, other: &Actor) {}
-    fn be_attacked(&self, other: &Actor) {}
+    fn attack(&mut self, other: &mut Actor) {}
+    fn be_attacked(&mut self, other: &mut Actor) {}
 
-    fn on_destroy(&self) {}
+    fn on_destroy(&mut self) {}
 
     fn symbol(&self) -> char { ' ' }
-    fn can_enter(&self, tile: &TileType) -> bool {
+    fn can_enter(&self, tile: TileType) -> bool {
         match tile {
-            &TileType::Wall | &TileType::Empty => false,
+            TileType::Wall | TileType::Empty => false,
             _ => true,
         }
     }

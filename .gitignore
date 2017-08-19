@@ -1,4 +1,3 @@
 *.d
 *.o
 roguelike
-rust/target

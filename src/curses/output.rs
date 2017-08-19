@@ -1,7 +1,6 @@
 use std::str::from_utf8;
-use engine::State;
 use pancurses::{Window};
-use engine::Outputter;
+use engine::{Outputter,State};
 
 pub struct Output<'a> {
     window: &'a Window,
@@ -13,9 +12,17 @@ impl<'a> Output<'a> {
 }
 impl<'a> Outputter for Output<'a> {
     fn render(&self, state: &State) {
-        // TODO: large map panning
-        let map_str: String = state.map.tiles.iter().map(|ref tile| tile.symbol()).collect();
+        // TODO: better way to identify the Player
+        let ref player = *state.map.tiles.iter()
+            .clone()
+            .flat_map(|t| t.contents().iter())
+            .find(|a| a.symbol() == '@')
+            .expect("There must be a Player (Actor with symbol '@')!");
+        let map_str: String = state.map.tiles.iter()
+            .map(|ref tile| tile.symbol())
+            .collect();
         if state.map.width > 0 {
+            // TODO: large map panning
             self.window.mvaddstr(0, 1, &String::from_utf8(vec![b'-'; state.map.width]).unwrap());
             for (i, row) in map_str.as_bytes().chunks(state.map.width).map(|row| from_utf8(row).unwrap()).enumerate() {
                 self.window.mvaddstr(i as i32 + 1, 1, &(row.to_owned()));
@@ -26,6 +33,7 @@ impl<'a> Outputter for Output<'a> {
                 self.window.mvaddstr(i, state.map.width as i32 + 1, "|");
             }
         }
+        self.window.mvaddstr(state.map.height as i32 + 3, 0, &format!("Money: {}", player.money()));
         self.window.refresh();
     }
 }

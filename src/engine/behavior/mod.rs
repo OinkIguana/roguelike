@@ -20,6 +20,8 @@ impl Behavior for Perform {
                     if let Some(mut them) = map.tiles[neighbour].contents().clone() {
                         me.step_on(&mut *them);
                         them.be_stepped_on(&mut *me);
+                        map.tiles[i].fill(me);
+                        map.tiles[neighbour].fill(them);
                     }
                     let (a, b) = map.tiles[i].clone().move_to(map.tiles[neighbour].clone());
                     replace(&mut map.tiles[i], a);
@@ -34,6 +36,8 @@ impl Behavior for Perform {
                     if let Some(mut them) = map.tiles[neighbour].contents().clone() {
                         me.attack(&mut *them);
                         them.be_attacked(&mut *me);
+                        map.tiles[i].fill(me);
+                        map.tiles[neighbour].fill(them);
                     }
                     true
                 } else {
@@ -45,6 +49,8 @@ impl Behavior for Perform {
                     if let Some(mut them) = map.tiles[neighbour].contents().clone() {
                         me.interact(&mut *them);
                         them.be_interacted_with(&mut *me);
+                        map.tiles[i].fill(me);
+                        map.tiles[neighbour].fill(them);
                     }
                     true
                 } else {

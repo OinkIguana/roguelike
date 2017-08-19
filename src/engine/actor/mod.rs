@@ -21,6 +21,7 @@ pub trait Actor: ActorClone {
     fn on_destroy(&mut self) {}
 
     fn gain_money(&mut self, value: i32) {}
+    fn money(&self) -> i32 { 0 }
 
     fn symbol(&self) -> char { ' ' }
     fn can_enter(&self, tile: TileType) -> bool {

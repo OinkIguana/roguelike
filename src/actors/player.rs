@@ -2,7 +2,7 @@ use engine::{Actor,Action,Behavior,Perform,IfEnterable};
 
 #[derive(Clone)]
 pub struct Player {
-    money: u32,
+    pub money: i32,
 }
 
 impl Player {
@@ -21,4 +21,8 @@ impl Actor for Player {
 
     fn can_be_attacked(&self) -> bool { true }
     fn symbol(&self) -> char { '@' }
+    fn gain_money(&mut self, value: i32) {
+        self.money += value;
+    }
+    fn money(&self) -> i32 { self.money }
 }

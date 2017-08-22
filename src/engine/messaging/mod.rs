@@ -4,6 +4,7 @@ use std::thread;
 #[derive(Clone,Copy)]
 pub enum Message {
     LevelEnd,
+    UpdateMoney(i32),
 }
 
 #[derive(Clone)]

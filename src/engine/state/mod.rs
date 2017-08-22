@@ -10,7 +10,9 @@ pub struct State { // TODO: are all the fields pub?
     /// The dungeon map
     pub map: Map,
     /// The total score accumulated by the player
-    pub score: u32,
+    pub score: i32,
+    /// The current money owned by the player
+    pub money: i32,
     /// The current floor of the dungeon the player is on
     pub level: u32,
     /// Whether the game has been quit by the player
@@ -30,6 +32,7 @@ impl State {
         State{
             map: Map::new(1, &Standard{}).populate(&Easy::new(messenger.clone())),
             score: 0,
+            money: 0,
             level: 1,
             quit: false,
             messenger,
@@ -74,6 +77,9 @@ impl State {
             Message::LevelEnd => {
                 self.level += 1;
                 self.map = Map::new(self.level, &Standard{}).populate(&Easy::new(self.messenger.clone()));
+            }
+            Message::UpdateMoney(qty) => {
+                self.money += qty;
             }
         }
         self

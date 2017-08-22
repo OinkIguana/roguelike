@@ -12,12 +12,6 @@ impl<'a> Output<'a> {
 }
 impl<'a> Outputter for Output<'a> {
     fn render(&self, state: &State) {
-        // TODO: better way to identify the Player
-        let ref player = *state.map.tiles.iter()
-            .clone()
-            .flat_map(|t| t.contents().iter())
-            .find(|a| a.symbol() == '@')
-            .expect("There must be a Player (Actor with symbol '@')!");
         let map_str: String = state.map.tiles.iter()
             .map(|ref tile| tile.symbol())
             .collect();
@@ -33,7 +27,7 @@ impl<'a> Outputter for Output<'a> {
                 self.window.mvaddstr(i, state.map.width as i32 + 1, "|");
             }
         }
-        self.window.mvaddstr(state.map.height as i32 + 3, 0, &format!("Money: {}", player.money()));
+        self.window.mvaddstr(state.map.height as i32 + 3, 0, &format!("Money: {}", state.money));
         self.window.refresh();
     }
 }

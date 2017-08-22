@@ -1,13 +1,13 @@
-use engine::{Actor,Action,Behavior,Perform,IfEnterable};
+use engine::{Actor,Action,Behavior,Perform,IfEnterable,Messenger,Message};
 
 #[derive(Clone)]
 pub struct Player {
-    pub money: i32,
+    messenger: Messenger
 }
 
 impl Player {
-    pub fn new() -> Player {
-        Player{ money: 0 }
+    pub fn new(messenger: Messenger) -> Player {
+        Player{ messenger }
     }
 }
 
@@ -22,7 +22,6 @@ impl Actor for Player {
     fn can_be_attacked(&self) -> bool { true }
     fn symbol(&self) -> char { '@' }
     fn gain_money(&mut self, value: i32) {
-        self.money += value;
+        self.messenger.send(Message::UpdateMoney(value));
     }
-    fn money(&self) -> i32 { self.money }
 }

@@ -1,4 +1,6 @@
-use super::{Action,Behavior,Map};
+use std::sync::mpsc::{channel,Receiver};
+use super::{Action,Behavior,Map,Message,Messenger,Populator};
+// TODO: pass these in somehow instead of directly using them in this module
 use populator::Easy;
 use generator::Standard;
 
@@ -13,18 +15,32 @@ pub struct State { // TODO: are all the fields pub?
     pub level: u32,
     /// Whether the game has been quit by the player
     pub quit: bool,
+    /// The Messenger that this state uses to send events on
+    messenger: Messenger,
+    /// The Receiver that connects to the Messenger
+    receiver: Receiver<Message>,
 }
 
 
 impl State {
     /// Creates the initial state
     pub fn new() -> State {
-        State{ map: Map::new(1, &Standard{}).populate(&Easy{}), score: 0, level: 1, quit: false }
+        let (sender, receiver) = channel();
+        let messenger = Messenger::new(sender);
+        State{
+            map: Map::new(1, &Standard{}).populate(&Easy::new(messenger.clone())),
+            score: 0,
+            level: 1,
+            quit: false,
+            messenger,
+            receiver,
+        }
     }
 
     /// Sets the quit field of the State
-    pub fn quit(self) -> State {
-        State{ map: self.map, score: self.score, level: self.level, quit: true }
+    pub fn quit(mut self) -> State {
+        self.quit = true;
+        self
     }
 
     /// Takes an Action and the previous state and produces the next state
@@ -39,11 +55,27 @@ impl State {
         }
     }
 
-    fn process_all(self, behaviors: Vec<Box<Behavior>>) -> State {
-        let mut map = self.map;
+    fn process_all(mut self, behaviors: Vec<Box<Behavior>>) -> State {
         for (index, behavior) in behaviors.into_iter().enumerate() {
-            behavior.exec(index, &mut map);
+            behavior.exec(index, &mut self.map);
         }
-        State{ map, score: self.score, level: self.level, quit: self.quit }
+        loop {
+            if let Ok(message) = self.receiver.try_recv() {
+                self = self.respond_to(message);
+            } else {
+                break;
+            }
+        }
+        self
+    }
+
+    fn respond_to(mut self, message: Message) -> State {
+        match message {
+            Message::LevelEnd => {
+                self.level += 1;
+                self.map = Map::new(self.level, &Standard{}).populate(&Easy::new(self.messenger.clone()));
+            }
+        }
+        self
     }
 }

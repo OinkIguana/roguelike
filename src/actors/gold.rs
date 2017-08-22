@@ -1,4 +1,4 @@
-use engine::{Actor};
+use engine::Actor;
 
 #[derive(Clone)]
 pub struct Gold{ value: i32 }

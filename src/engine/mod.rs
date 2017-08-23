@@ -15,21 +15,23 @@ pub use self::behavior::*;
 pub use self::messaging::{Message,Messenger};
 
 /// The Engine encapsulates the behaviours of the game
-pub struct Engine<I: Inputter, O: Outputter> {
+pub struct Engine<'a, I: Inputter, O: Outputter, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> {
     input: I,
     output: O,
+    generator: G,
+    populator: &'a F,
 }
 
-impl<I: Inputter, O: Outputter> Engine<I, O> {
+impl<'a, I: Inputter, O: Outputter, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> Engine<'a, I, O, G, P, F> {
     /// Creates a new engine using the provided input and output mechanisms
-    pub fn new(input: I, output: O) -> Engine<I, O> {
-        Engine{ input, output }
+    pub fn new(input: I, output: O, generator: G, populator: &'a F) -> Engine<I, O, G, P, F> {
+        Engine{ input, output, generator, populator }
     }
 
     /// Runs the game, consuming inputs from the input and outputting to the output until the
     /// game ends or the player quits
     pub fn run(&self) {
-        let mut state = State::new();
+        let mut state = State::new(&self.generator, self.populator);
         while !state.quit {
             self.output.render(&state);
             state = state.process(self.input.get());

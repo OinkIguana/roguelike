@@ -1,6 +1,6 @@
 use std::str::from_utf8;
 use pancurses::{Window};
-use engine::{Outputter,State};
+use engine::{Outputter,State,Generator,Populator,Messenger};
 
 pub struct Output<'a> {
     window: &'a Window,
@@ -11,7 +11,7 @@ impl<'a> Output<'a> {
     }
 }
 impl<'a> Outputter for Output<'a> {
-    fn render(&self, state: &State) {
+    fn render<G: Generator, P: Populator, F: Fn(Messenger) -> P>(&self, state: &State<G, P, F>) {
         let map_str: String = state.map.tiles.iter()
             .map(|ref tile| tile.symbol())
             .collect();

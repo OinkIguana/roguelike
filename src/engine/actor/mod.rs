@@ -6,19 +6,18 @@ pub trait Actor: ActorClone {
     /// Consumes an input action and produces the Actor's Behavior
     fn react(&self, action: Action) -> Box<Behavior> { Box::new(Perform(Action::Idle)) }
 
-    fn can_be_stepped_on(&self) -> bool { false }
+    fn can_be_stepped_on(&self, other: &Actor) -> bool { false }
     fn step_on(&mut self, other: &mut Actor) {}
     fn be_stepped_on(&mut self, other: &mut Actor) {}
 
-    fn can_be_interacted_with(&self) -> bool { false }
+    fn can_be_interacted_with(&self, other: &Actor) -> bool { false }
     fn interact(&mut self, other: &mut Actor) {}
     fn be_interacted_with(&mut self, other: &mut Actor) {}
 
-    fn can_be_attacked(&self) -> bool { false }
+    fn can_be_attacked(&self, other: &Actor) -> bool { false }
     fn attack(&mut self, other: &mut Actor) {}
     fn be_attacked(&mut self, other: &mut Actor) {}
-
-    fn on_destroy(&mut self) {}
+    fn calculate_attack_power(&self) -> u32 { 0 }
 
     fn gain_money(&mut self, value: i32) {}
 

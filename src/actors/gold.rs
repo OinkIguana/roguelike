@@ -9,7 +9,7 @@ impl Gold {
 }
 
 impl Actor for Gold {
-    fn can_be_stepped_on(&self) -> bool { true }
+    fn can_be_stepped_on(&self, _: &Actor) -> bool { true }
     fn be_stepped_on(&mut self, other: &mut Actor) {
         other.gain_money(self.value);
     }

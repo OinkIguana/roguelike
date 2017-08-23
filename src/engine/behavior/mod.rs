@@ -65,14 +65,18 @@ impl Behavior for Perform {
 pub struct IfAttackable<T: Behavior>(pub Direction, pub T);
 impl<T: Behavior> Behavior for IfAttackable<T> {
     fn exec(&self, i: usize, map: &mut Map) -> bool {
-        let attackable = map
-            .get_neighbouring_tile_index(i, self.0)
-            .map(|n| &map.tiles[n])
-            .and_then(|t| t.contents().clone())
-            .map(|a| a.can_be_attacked())
-            .unwrap_or(false);
-        if attackable {
-            self.1.exec(i, map)
+        if let Some(me) = map.tiles[i].contents().clone() {
+            let attackable = map
+                .get_neighbouring_tile_index(i, self.0)
+                .map(|n| &map.tiles[n])
+                .and_then(|t| t.contents().clone())
+                .map(|a| a.can_be_attacked(&*me))
+                .unwrap_or(false);
+            if attackable {
+                self.1.exec(i, map)
+            } else {
+                false
+            }
         } else {
             false
         }
@@ -98,15 +102,19 @@ impl<T: Behavior> Behavior for IfOpen<T> {
 pub struct IfEnterable<T: Behavior>(pub Direction, pub T);
 impl<T: Behavior> Behavior for IfEnterable<T> {
     fn exec(&self, i: usize, map: &mut Map) -> bool {
-        let open = map
-            .get_neighbouring_tile_index(i, self.0)
-            .map(|n| &map.tiles[n])
-            .map(|t|
-                map.tiles[i].contents().clone().map(|a| a.can_enter(t.kind)).unwrap_or(false) &&
-                t.contents().clone().map(|a| a.can_be_stepped_on()).unwrap_or(true))
-            .unwrap_or(false);
-        if open {
-            self.1.exec(i, map)
+        if let Some(me) = map.tiles[i].contents().clone() {
+            let open = map
+                .get_neighbouring_tile_index(i, self.0)
+                .map(|n| &map.tiles[n])
+                .map(|t|
+                    map.tiles[i].contents().clone().map(|a| a.can_enter(t.kind)).unwrap_or(false) &&
+                    t.contents().clone().map(|a| a.can_be_stepped_on(&*me)).unwrap_or(true))
+                .unwrap_or(false);
+            if open {
+                self.1.exec(i, map)
+            } else {
+                false
+            }
         } else {
             false
         }

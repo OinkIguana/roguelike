@@ -27,7 +27,7 @@ impl<'a> Outputter for Output<'a> {
                 self.window.mvaddstr(i, state.map.width as i32 + 1, "|");
             }
         }
-        self.window.mvaddstr(state.map.height as i32 + 3, 0, &format!("Money: {}", state.money));
+        self.window.mvaddstr(state.map.height as i32 + 3, 0, &format!("Money: {} | Health: {}", state.money, state.health));
         self.window.refresh();
     }
 }

@@ -16,6 +16,8 @@ pub struct State<'a, G: Generator + 'a, P: Populator, F: Fn(Messenger) -> P + 'a
     pub level: u32,
     /// Whether the game has been quit by the player
     pub quit: bool,
+    /// The health of the player, to display on the HUD
+    pub health: i8,
     /// The Messenger that this state uses to send events on
     messenger: Messenger,
     /// The Receiver that connects to the Messenger
@@ -35,6 +37,7 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
             score: 0,
             money: 0,
             level: 1,
+            health: 100,
             quit: false,
             messenger,
             receiver,
@@ -83,6 +86,16 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
             }
             Message::UpdateMoney(qty) => {
                 self.money += qty;
+            }
+            Message::Die => {
+
+            }
+            Message::SetHealth(health) => {
+                self.health = health;
+            }
+            Message::GameOver => {
+                // TODO: make a game over screen
+                self = self.quit();
             }
         }
         self

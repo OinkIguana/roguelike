@@ -1,9 +1,11 @@
-use std::sync::mpsc::{channel,Sender,Receiver};
-use std::thread;
+use std::sync::mpsc::Sender;
 
 #[derive(Clone,Copy)]
 pub enum Message {
     LevelEnd,
+    GameOver,
+    Die,
+    SetHealth(i8),
     UpdateMoney(i32),
 }
 

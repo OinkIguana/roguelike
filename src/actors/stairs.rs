@@ -12,7 +12,7 @@ impl Stairs {
 }
 
 impl Actor for Stairs {
-    fn can_be_stepped_on(&self) -> bool { true }
+    fn can_be_stepped_on(&self, _: &Actor) -> bool { true }
     fn be_stepped_on(&mut self, _: &mut Actor) {
         self.messenger.send(Message::LevelEnd);
     }

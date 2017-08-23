@@ -20,7 +20,7 @@ impl<'a> Inputter for Input<'a> {
             Some(UInput::KeyDown) => Action::Move(Direction::S),
             Some(UInput::KeyLeft) => Action::Move(Direction::W),
             Some(UInput::KeyRight) => Action::Move(Direction::E),
-            Some(_) => Action::Idle,
+            Some(_) => self.get(), // hope this gets tail call optimized...
             None => Action::Idle,
         }
     }

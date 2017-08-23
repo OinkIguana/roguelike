@@ -2,12 +2,13 @@ use engine::{Actor,Action,Behavior,Perform,IfEnterable,Messenger,Message};
 
 #[derive(Clone)]
 pub struct Player {
+    health: i8,
     messenger: Messenger
 }
 
 impl Player {
     pub fn new(messenger: Messenger) -> Player {
-        Player{ messenger }
+        Player{ messenger, health: 100 }
     }
 }
 
@@ -19,7 +20,15 @@ impl Actor for Player {
         }
     }
 
-    fn can_be_attacked(&self) -> bool { true }
+    fn can_be_attacked(&self, _: &Actor) -> bool { true }
+    fn be_attacked(&mut self, other: &mut Actor) {
+        self.health -= other.calculate_attack_power() as i8;
+        self.messenger.send(Message::SetHealth(self.health));
+        if self.health <= 0 {
+            self.messenger.send(Message::GameOver);
+        }
+    }
+
     fn symbol(&self) -> char { '@' }
     fn gain_money(&mut self, value: i32) {
         self.messenger.send(Message::UpdateMoney(value));

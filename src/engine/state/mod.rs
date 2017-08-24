@@ -18,9 +18,7 @@ pub struct State<'a, G: Generator + 'a, P: Populator, F: Fn(Messenger) -> P + 'a
     pub quit: bool,
     /// The health of the player, to display on the HUD
     pub health: i8,
-    /// The Messenger that this state uses to send events on
     messenger: Messenger,
-    /// The Receiver that connects to the Messenger
     receiver: Receiver<Message>,
     generator: &'a G,
     populator: &'a F,

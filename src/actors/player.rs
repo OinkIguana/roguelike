@@ -1,4 +1,4 @@
-use engine::{Actor,Action,Behavior,Perform,IfEnterable,Messenger,Message};
+use engine::{Actor,Action,Behavior,Perform,IfEnterable,IfAttackable,Messenger,Message};
 
 #[derive(Clone)]
 pub struct Player {
@@ -15,8 +15,9 @@ impl Player {
 impl Actor for Player {
     fn react(&self, action: Action) -> Box<Behavior> {
         match action {
-            Action::Move(d) => Box::new(IfEnterable(d, Perform(action))),
-            _               => Box::new(Perform(Action::Idle)),
+            Action::Move(d)     => Box::new(IfEnterable(d, Perform(action))),
+            Action::Attack(d)   => Box::new(IfAttackable(d, Perform(action))),
+            _                   => Box::new(Perform(Action::Idle)),
         }
     }
 
@@ -28,6 +29,7 @@ impl Actor for Player {
             self.messenger.send(Message::GameOver);
         }
     }
+    fn calculate_attack_power(&self) -> u32 { 5 }
 
     fn symbol(&self) -> char { '@' }
     fn gain_money(&mut self, value: i32) {

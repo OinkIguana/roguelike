@@ -4,7 +4,7 @@ use std::sync::mpsc::Sender;
 pub enum Message {
     LevelEnd,
     GameOver,
-    Die,
+    Die(usize),
     SetHealth(i8),
     UpdateMoney(i32),
 }

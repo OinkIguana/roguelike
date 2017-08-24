@@ -88,6 +88,10 @@ impl Tile {
         &self.contents
     }
 
+    pub fn contents_mut(&mut self) -> &mut Option<Box<Actor>> {
+        &mut self.contents
+    }
+
     pub fn can_hold_contents(&self) -> bool {
         match self.kind {
             TileType::Floor | TileType::Hall | TileType::Door => true,

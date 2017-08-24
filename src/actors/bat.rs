@@ -4,11 +4,12 @@ use engine::{Actor,Action,Behavior,Direction,Perform,IfAttackable,IfOpen,Switch,
 #[derive(Clone)]
 pub struct Bat {
     health: i8,
+    location: usize,
     messenger: Messenger,
 }
 impl Bat {
     pub fn new(messenger: Messenger) -> Bat {
-        Bat{ health: 15, messenger }
+        Bat{ health: 15, location: 0, messenger }
     }
 }
 
@@ -24,9 +25,12 @@ impl Actor for Bat {
     fn be_attacked(&mut self, other: &mut Actor) {
         self.health -= other.calculate_attack_power() as i8;
         if self.health <= 0 {
-            self.messenger.send(Message::Die);
+            self.messenger.send(Message::Die(self.get_location()));
         }
     }
     fn calculate_attack_power(&self) -> u32 { 2 }
     fn symbol(&self) -> char { 'B' }
+
+    fn get_location(&self) -> usize { return self.location; }
+    fn set_location(&mut self, location: usize) { self.location = location; }
 }

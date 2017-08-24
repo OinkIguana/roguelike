@@ -30,7 +30,7 @@ impl<'a, I: Inputter, O: Outputter, G: Generator, P: Populator, F: Fn(Messenger)
 
     /// Runs the game, consuming inputs from the input and outputting to the output until the
     /// game ends or the player quits
-    pub fn run(&self) {
+    pub fn run(&mut self) {
         let mut state = State::new(&self.generator, self.populator);
         while !state.quit {
             self.output.render(&state);

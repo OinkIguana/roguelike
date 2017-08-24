@@ -4,7 +4,7 @@ use super::Direction;
 /// Engine
 pub trait Inputter {
     /// Retrieves a single action from the user
-    fn get(&self) -> Action;
+    fn get(&mut self) -> Action;
 }
 
 /// An Action describes the actions that the player can take

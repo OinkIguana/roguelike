@@ -17,9 +17,7 @@ impl Behavior for Perform {
         match self.0 {
             Action::Move(dir) => {
                 if let (Some(neighbour), Some(mut me)) = (map.get_neighbouring_tile_index(i, dir), map.tiles[i].contents().clone()) {
-                    me.set_location(i);
                     if let Some(mut them) = map.tiles[neighbour].contents().clone() {
-                        them.set_location(neighbour);
                         me.step_on(&mut *them);
                         them.be_stepped_on(&mut *me);
                         map.tiles[i].fill(me);
@@ -35,9 +33,7 @@ impl Behavior for Perform {
             }
             Action::Attack(dir) => {
                 if let (Some(neighbour), Some(mut me)) = (map.get_neighbouring_tile_index(i, dir), map.tiles[i].contents().clone()) {
-                    me.set_location(i);
                     if let Some(mut them) = map.tiles[neighbour].contents().clone() {
-                        them.set_location(neighbour);
                         me.attack(&mut *them);
                         them.be_attacked(&mut *me);
                         map.tiles[i].fill(me);
@@ -50,9 +46,7 @@ impl Behavior for Perform {
             }
             Action::Interact(dir) => {
                 if let (Some(neighbour), Some(mut me)) = (map.get_neighbouring_tile_index(i, dir), map.tiles[i].contents().clone()) {
-                    me.set_location(i);
                     if let Some(mut them) = map.tiles[neighbour].contents().clone() {
-                        them.set_location(neighbour);
                         me.interact(&mut *them);
                         them.be_interacted_with(&mut *me);
                         map.tiles[i].fill(me);

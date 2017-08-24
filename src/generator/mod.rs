@@ -56,7 +56,7 @@ fn generate_tiles(room_count: u8, width: usize, height: usize) -> Grid<Tile> {
     let mut rng = thread_rng();
     let mut merges_available: usize = room_count as usize / 2;
 
-    let mut tiles = vec![Tile::new(TileType::Empty); width * height];
+    let mut tiles: Vec<Tile> = (0..width * height).into_iter().map(|i| Tile::new(TileType::Empty, i)).collect();
     let x_range = Range::new(1, width);
     let y_range = Range::new(1, height);
     let w_range = Normal::new(16., 1.);
@@ -193,7 +193,8 @@ fn add_halls(rooms: Grid<Tile>, halls: Grid<bool>) -> Grid<Tile> {
         .iter()
         .to_owned()
         .zip(halls.grid.iter().map(|b| *b))
-        .map(|(tile, hall)| if hall && tile.kind == TileType::Empty { Tile::new(TileType::Hall) } else { tile.clone() })
+        .enumerate()
+        .map(|(i, (tile, hall))| if hall && tile.kind == TileType::Empty { Tile::new(TileType::Hall, i) } else { tile.clone() })
         .collect(), width: rooms.width, height: rooms.height }
 }
 
@@ -269,9 +270,10 @@ fn add_walls(Grid{ grid: tiles, width, height }: Grid<Tile>) -> Grid<Tile> {
                 .flat_map(|o| o.map(|n| tiles[n].kind == TileType::Floor).and_then(|b| if b { Some(true) } else { None }))
                 .count())
         .zip(tiles.iter())
-        .map(|(c, t)| match t.kind {
-                TileType::Empty if c > 0    => Tile::new(TileType::Wall),
-                TileType::Hall if c >= 2    => Tile::new(TileType::Door),
+        .enumerate()
+        .map(|(i, (c, t))| match t.kind {
+                TileType::Empty if c > 0    => Tile::new(TileType::Wall, i),
+                TileType::Hall if c >= 2    => Tile::new(TileType::Door, i),
                 _                           => t.clone(),
             })
         .collect(), width, height }

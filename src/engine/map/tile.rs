@@ -41,22 +41,25 @@ impl Display for TileType {
 #[derive(Clone)]
 pub struct Tile {
     pub kind: TileType,
+    location: usize,
     contents: Option<Box<Actor>>,
 }
 
 impl Tile {
-    pub fn new(kind: TileType) -> Tile {
-        Tile{ kind, contents: None }
+    pub fn new(kind: TileType, location: usize) -> Tile {
+        Tile{ kind, location, contents: None }
     }
 
     /// Move this Cell's contents to the provided cell, destroying what was there
     pub fn move_to(self, tile: Tile) -> (Tile, Tile) {
         match self.contents {
-            Some(ref actor) =>
+            Some(mut actor) => {
+                actor.set_location(tile.location);
                 (   // TODO: any way to avoid cloning here?
-                    Tile{ kind: self.kind, contents: None },
-                    Tile{ kind: tile.kind, contents: self.contents.clone() },
-                ),
+                    Tile{ kind: self.kind, location: self.location, contents: None },
+                    Tile{ kind: tile.kind, location: tile.location, contents: Some(actor) },
+                )
+            },
             _ => (self, tile)
         }
     }
@@ -66,7 +69,8 @@ impl Tile {
         self.contents = None;
     }
 
-    pub fn fill(&mut self, actor: Box<Actor>) {
+    pub fn fill(&mut self, mut actor: Box<Actor>) {
+        actor.set_location(self.location);
         self.contents = Some(actor);
     }
 
@@ -86,10 +90,6 @@ impl Tile {
 
     pub fn contents(&self) -> &Option<Box<Actor>> {
         &self.contents
-    }
-
-    pub fn contents_mut(&mut self) -> &mut Option<Box<Actor>> {
-        &mut self.contents
     }
 
     pub fn can_hold_contents(&self) -> bool {

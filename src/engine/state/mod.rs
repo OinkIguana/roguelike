@@ -64,12 +64,6 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
 
     fn process_all(mut self, behaviors: Vec<Box<Behavior>>) -> Self {
         for (index, behavior) in behaviors.into_iter().enumerate() {
-            if let Some(mut me) = self.map.tiles[index].contents().clone() {
-                let mut newtile = self.map.tiles[index].clone();
-                me.set_location(index);
-                newtile.fill(me);
-                self.map.tiles[index] = newtile;
-            }
             behavior.exec(index, &mut self.map);
         }
         loop {

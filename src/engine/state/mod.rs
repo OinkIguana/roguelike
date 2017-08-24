@@ -67,18 +67,18 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
     fn process_all(mut self, behaviors: Vec<Box<Behavior>>) -> Self {
         for (index, behavior) in behaviors.into_iter().enumerate() {
             behavior.exec(index, &mut self.map);
-        }
-        loop {
-            if let Ok(message) = self.receiver.try_recv() {
-                self = self.respond_to(message);
-            } else {
-                break;
+            loop {
+                if let Ok(message) = self.receiver.try_recv() {
+                    self = self.respond_to(index, message);
+                } else {
+                    break;
+                }
             }
         }
         self
     }
 
-    fn respond_to(mut self, message: Message) -> Self {
+    fn respond_to(mut self, index: usize, message: Message) -> Self {
         match message {
             Message::LevelEnd => {
                 self.level += 1;
@@ -88,7 +88,7 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
                 self.money += qty;
             }
             Message::Die => {
-
+                self.map.tiles[index].empty();
             }
             Message::SetHealth(health) => {
                 self.health = health;

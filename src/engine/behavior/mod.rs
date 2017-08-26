@@ -83,6 +83,27 @@ impl<T: Behavior> Behavior for IfAttackable<T> {
     }
 }
 
+pub struct IfInteractable<T: Behavior>(pub Direction, pub T);
+impl<T: Behavior> Behavior for IfInteractable<T> {
+    fn exec(&self, i: usize, map: &mut Map) -> bool {
+        if let Some(me) = map.tiles[i].contents().clone() {
+            let interactable = map
+                .get_neighbouring_tile_index(i, self.0)
+                .map(|n| &map.tiles[n])
+                .and_then(|t| t.contents().clone())
+                .map(|a| a.can_be_interacted_with(&*me))
+                .unwrap_or(false);
+            if interactable {
+                self.1.exec(i, map)
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+}
+
 pub struct IfOpen<T: Behavior>(pub Direction, pub T);
 impl<T: Behavior> Behavior for IfOpen<T> {
     fn exec(&self, i: usize, map: &mut Map) -> bool {

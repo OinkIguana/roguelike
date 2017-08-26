@@ -27,13 +27,13 @@ impl Actor for Bat {
         other.affinity() >= 0
     }
     fn be_attacked(&mut self, other: &mut Actor) {
-        self.health -= other.calculate_attack_power() as i8;
+        self.health -= other.attack_power() as i8;
         if self.health <= 0 {
             self.messenger.send(Message::Die(self.get_location()));
             self.messenger.send(Message::Drop(self.get_location(), Box::new(Gold::new(1))));
         }
     }
-    fn calculate_attack_power(&self) -> u32 { 2 }
+    fn attack_power(&self) -> u32 { 2 }
 
     fn symbol(&self) -> char { 'B' }
     fn affinity(&self) -> i8 { -1 }

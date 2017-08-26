@@ -83,12 +83,20 @@ impl Map {
     }
 
     pub fn get_random_open_tile(&self) -> Option<usize> {
-        self.get_random_tile(|ref t| t.can_hold_contents() && t.contents().is_none())
+        self.get_random_tile(|i, ref t|
+            t.kind == TileType::Floor &&
+            t.contents().is_none() &&
+            Direction::cardinals().into_iter().all(|d|
+                self.get_neighbouring_tile_index(i, d)
+                    .map(|n| self.tiles[n].kind != TileType::Door)
+                    .unwrap_or(false)
+            )
+        )
     }
 
     /// Finds the index of a random tile that matches a predicate
-    pub fn get_random_tile<F: Fn(&Tile) -> bool>(&self, pred: F) -> Option<usize> {
-        let options: Vec<usize> = self.tiles.iter().enumerate().filter(|&(_, tile)| pred(tile)).map(|(i, _)| i).collect();
+    pub fn get_random_tile<F: Fn(usize, &Tile) -> bool>(&self, pred: F) -> Option<usize> {
+        let options: Vec<usize> = self.tiles.iter().enumerate().filter(|&(i, tile)| pred(i, tile)).map(|(i, _)| i).collect();
         thread_rng().choose(&options).map(|i| *i)
     }
 }

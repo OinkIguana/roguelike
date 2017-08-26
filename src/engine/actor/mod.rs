@@ -6,6 +6,8 @@ pub trait Actor: ActorClone {
     /// Consumes an input action and produces the Actor's Behavior
     fn react(&self, action: Action) -> Box<Behavior> { Box::new(Perform(Action::Idle)) }
 
+    // Standard game events
+
     /// Whether the Actor can be stepped on and consumed
     fn can_be_stepped_on(&self, other: &Actor) -> bool { false }
     /// An action to perform when stepping on another Actor
@@ -26,11 +28,15 @@ pub trait Actor: ActorClone {
     fn attack(&mut self, other: &mut Actor) {}
     /// An action to perform when being attacked by another Actor
     fn be_attacked(&mut self, other: &mut Actor) {}
-    /// The power of this Actor's attacks
-    fn calculate_attack_power(&self) -> u32 { 0 }
 
+    // Getters and setters for stats that may or may not be implemented for a given Actor
+
+    /// The power of this Actor's attacks
+    fn attack_power(&self) -> u32 { 0 }
     /// An action to perform when money is gained by this Actor
-    fn gain_money(&mut self, value: i32) {}
+    fn set_money_rel(&mut self, value: i32) {}
+    /// An action to perform when this Actor's health should be changed
+    fn set_health_rel(&mut self, amount: i32) {}
 
     /// The symbol that identifies this Actor to the display
     fn symbol(&self) -> char { ' ' }

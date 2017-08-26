@@ -11,7 +11,7 @@ impl Gold {
 impl Actor for Gold {
     fn can_be_stepped_on(&self, _: &Actor) -> bool { true }
     fn be_stepped_on(&mut self, other: &mut Actor) {
-        other.gain_money(self.value);
+        other.set_money_rel(self.value);
     }
     fn symbol(&self) -> char { 'G' }
 }

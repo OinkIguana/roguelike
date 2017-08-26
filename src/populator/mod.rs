@@ -1,8 +1,8 @@
 use engine::{Map,Populator,Messenger};
 
-use super::actors::{Player,Bat,Gold,Stairs};
+use super::actors::*;
 
-/// A Populator for an easy game
+/// A Populator for an very basic, easy game
 pub struct Easy {
     messenger: Messenger,
 }
@@ -20,5 +20,6 @@ impl Populator for Easy {
             .fill_random_tile(Bat::new(self.messenger.clone()))
             .fill_random_tile(Bat::new(self.messenger.clone()))
             .fill_random_tile(Bat::new(self.messenger.clone()))
+            .fill_random_tile(Fountain::new())
     }
 }

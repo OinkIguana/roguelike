@@ -1,4 +1,4 @@
-use engine::{Actor,Action,Behavior,Perform,IfEnterable,IfAttackable,Messenger,Message};
+use engine::{Actor,Action,Behavior,Perform,IfEnterable,IfAttackable,IfInteractable,Messenger,Message};
 
 #[derive(Clone)]
 pub struct Player {
@@ -17,22 +17,29 @@ impl Actor for Player {
         match action {
             Action::Move(d)     => Box::new(IfEnterable(d, Perform(action))),
             Action::Attack(d)   => Box::new(IfAttackable(d, Perform(action))),
+            Action::Interact(d) => Box::new(IfInteractable(d, Perform(action))),
             _                   => Box::new(Perform(Action::Idle)),
         }
     }
 
     fn can_be_attacked(&self, _: &Actor) -> bool { true }
     fn be_attacked(&mut self, other: &mut Actor) {
-        self.health -= other.calculate_attack_power() as i8;
+        self.health -= other.attack_power() as i8;
         self.messenger.send(Message::SetHealth(self.health));
         if self.health <= 0 {
             self.messenger.send(Message::GameOver);
         }
     }
-    fn calculate_attack_power(&self) -> u32 { 5 }
+    fn attack_power(&self) -> u32 { 5 }
 
     fn symbol(&self) -> char { '@' }
-    fn gain_money(&mut self, value: i32) {
+
+    fn set_money_rel(&mut self, value: i32) {
         self.messenger.send(Message::UpdateMoney(value));
+    }
+    fn set_health_rel(&mut self, amount: i32) {
+        self.health += amount as i8;
+        if self.health > 100 { self.health = 100; }
+        self.messenger.send(Message::SetHealth(self.health));
     }
 }

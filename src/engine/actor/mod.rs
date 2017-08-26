@@ -21,6 +21,8 @@ pub trait Actor: ActorClone {
     fn interact(&mut self, other: &mut Actor) {}
     /// An action to perform when being interacted with by another Actor
     fn be_interacted_with(&mut self, other: &mut Actor) {}
+    /// An action to perform when being used by another Actor from the inventory
+    fn be_used(self, other: &mut Actor) -> Option<Box<Actor>> where Self: Actor + Sized { None }
 
     /// Whether the Actor can be attacked
     fn can_be_attacked(&self, other: &Actor) -> bool { false }
@@ -37,6 +39,10 @@ pub trait Actor: ActorClone {
     fn set_money_rel(&mut self, value: i32) {}
     /// An action to perform when this Actor's health should be changed
     fn set_health_rel(&mut self, amount: i32) {}
+    /// An action to perform when an Actor picks up another
+    fn pick_up(&mut self, item: Box<Actor>) {
+
+    }
 
     /// The symbol that identifies this Actor to the display
     fn symbol(&self) -> char { ' ' }
@@ -51,8 +57,6 @@ pub trait Actor: ActorClone {
     /// Affinity determines how strongly associated with good (positive) or bad (negative) this
     /// Actor is. A value of 0 is neutral
     fn affinity(&self) -> i8 { 0 }
-
-    // TODO: is there a better way to do the below? another trait maybe?
 
     /// Should return current location (tile index) of this Actor
     ///

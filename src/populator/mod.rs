@@ -21,5 +21,7 @@ impl Populator for Easy {
             .fill_random_tile(Bat::new(self.messenger.clone()))
             .fill_random_tile(Bat::new(self.messenger.clone()))
             .fill_random_tile(Fountain::new())
+            .fill_random_tile(Potion)
+            .fill_random_tile(Potion)
     }
 }

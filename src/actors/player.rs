@@ -3,12 +3,13 @@ use engine::{Actor,Action,Behavior,Perform,IfEnterable,IfAttackable,IfInteractab
 #[derive(Clone)]
 pub struct Player {
     health: i8,
-    messenger: Messenger
+    messenger: Messenger,
+    inventory: Vec<Box<Actor>>,
 }
 
 impl Player {
     pub fn new(messenger: Messenger) -> Player {
-        Player{ messenger, health: 100 }
+        Player{ messenger, health: 100, inventory: vec![] }
     }
 }
 
@@ -41,5 +42,9 @@ impl Actor for Player {
         self.health += amount as i8;
         if self.health > 100 { self.health = 100; }
         self.messenger.send(Message::SetHealth(self.health));
+    }
+
+    fn pick_up(&mut self, item: Box<Actor>) {
+        self.inventory.push(item);
     }
 }

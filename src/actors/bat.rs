@@ -22,7 +22,10 @@ impl Actor for Bat {
         let moves: Vec<IfOpen<Perform>> = dirs.iter().cloned().map(|d| IfOpen(d, Perform(Action::Move(d)))).collect();
         Box::new(Switch(attacks).or_else(Switch(moves)))
     }
-    fn can_be_attacked(&self, _: &Actor) -> bool { true }
+
+    fn can_be_attacked(&self, other: &Actor) -> bool {
+        other.affinity() >= 0
+    }
     fn be_attacked(&mut self, other: &mut Actor) {
         self.health -= other.calculate_attack_power() as i8;
         if self.health <= 0 {
@@ -31,7 +34,9 @@ impl Actor for Bat {
         }
     }
     fn calculate_attack_power(&self) -> u32 { 2 }
+
     fn symbol(&self) -> char { 'B' }
+    fn affinity(&self) -> i8 { -1 }
 
     fn get_location(&self) -> usize { return self.location; }
     fn set_location(&mut self, location: usize) { self.location = location; }

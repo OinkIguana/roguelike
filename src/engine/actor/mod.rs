@@ -42,6 +42,10 @@ pub trait Actor: ActorClone {
         }
     }
 
+    /// Affinity determines how strongly associated with good (positive) or bad (negative) this
+    /// Actor is. A value of 0 is neutral
+    fn affinity(&self) -> i8 { 0 }
+
     // TODO: is there a better way to do the below? another trait maybe?
 
     /// Should return current location (tile index) of this Actor

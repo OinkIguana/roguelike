@@ -88,6 +88,9 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
             Message::Die(index) => {
                 self.map.tiles[index].empty();
             }
+            Message::Drop(index, actor) => {
+                self.map.tiles[index].fill(actor);
+            }
             Message::SetHealth(health) => {
                 self.health = health;
             }

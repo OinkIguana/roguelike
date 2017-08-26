@@ -1,5 +1,6 @@
 use rand::{thread_rng,Rng};
 use engine::{Actor,Action,Behavior,Direction,Perform,IfAttackable,IfOpen,Switch,Messenger,Message};
+use super::Gold;
 
 #[derive(Clone)]
 pub struct Bat {
@@ -26,6 +27,7 @@ impl Actor for Bat {
         self.health -= other.calculate_attack_power() as i8;
         if self.health <= 0 {
             self.messenger.send(Message::Die(self.get_location()));
+            self.messenger.send(Message::Drop(self.get_location(), Box::new(Gold::new(1))));
         }
     }
     fn calculate_attack_power(&self) -> u32 { 2 }

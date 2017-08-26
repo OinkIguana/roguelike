@@ -1,10 +1,12 @@
 use std::sync::mpsc::Sender;
+use super::Actor;
 
-#[derive(Clone,Copy)]
+#[derive(Clone)]
 pub enum Message {
     LevelEnd,
     GameOver,
     Die(usize),
+    Drop(usize, Box<Actor>),
     SetHealth(i8),
     UpdateMoney(i32),
 }

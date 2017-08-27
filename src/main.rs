@@ -13,15 +13,13 @@ use engine::Populator;
 
 fn main() {
     let window = initscr();
-    let output = curses::Output::new(&window);
-    let mut input = curses::Input::new(&window, &output);
+    let display = curses::Curses::new(&window);
     let populator = populator::Easy::new;
     noecho();
     curs_set(0);
     window.keypad(true);
     let mut e = engine::Engine::new(
-        &mut input,
-        &output,
+        display,
         generator::Standard,
         &populator,
     );

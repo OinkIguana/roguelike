@@ -15,17 +15,16 @@ pub use self::behavior::*;
 pub use self::messaging::{Message,Messenger};
 
 /// The Engine encapsulates the behaviours of the game
-pub struct Engine<'a, I: Inputter + 'a, O: Outputter + 'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> {
-    input: &'a mut I,
-    output: &'a O,
+pub struct Engine<'a, IO: Inputter + Outputter, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> {
+    display: IO,
     generator: G,
     populator: &'a F,
 }
 
-impl<'a, I: Inputter, O: Outputter, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> Engine<'a, I, O, G, P, F> {
+impl<'a, IO: Inputter + Outputter, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> Engine<'a, IO, G, P, F> {
     /// Creates a new engine using the provided input and output mechanisms
-    pub fn new(input: &'a mut I, output: &'a O, generator: G, populator: &'a F) -> Engine<'a, I, O, G, P, F> {
-        Engine{ input, output, generator, populator }
+    pub fn new(display: IO, generator: G, populator: &'a F) -> Engine<'a, IO, G, P, F> {
+        Engine{ display, generator, populator }
     }
 
     /// Runs the game, consuming inputs from the input and outputting to the output until the
@@ -33,8 +32,8 @@ impl<'a, I: Inputter, O: Outputter, G: Generator, P: Populator, F: Fn(Messenger)
     pub fn run(&mut self) {
         let mut state = State::new(&self.generator, self.populator);
         while !state.quit {
-            self.output.render(&state);
-            state = state.process(self.input.get());
+            self.display.render(&state);
+            state = state.process(self.display.get());
         }
     }
 }

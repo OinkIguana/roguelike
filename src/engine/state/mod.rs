@@ -1,7 +1,5 @@
 use std::sync::mpsc::{channel,Receiver};
 use super::{Action,Behavior,Map,Message,Messenger,Generator,Populator};
-// TODO: pass these in somehow instead of directly using them in this module
-
 
 /// A `State` represents the current state of the game. By serializing the state, the entire game
 /// should be reproducable exactly as it was before.
@@ -26,8 +24,9 @@ pub struct State<'a, G: Generator + 'a, P: Populator, F: Fn(Messenger) -> P + 'a
 
 /// A `BState` is a more basic representation of a state, which is what gets passed to the
 /// Outputter
-pub struct BState<'a> {
-    pub map: &'a Map,
+#[derive(Clone)]
+pub struct BState {
+    pub map: Map,
     pub score: i32,
     pub money: i32,
     pub health: i32,
@@ -113,7 +112,7 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
 
     pub fn simplify(&self) -> BState {
         BState{
-            map: &self.map,
+            map: self.map.clone(),
             score: self.score,
             money: self.money,
             level: self.level,

@@ -46,6 +46,8 @@ pub trait Actor: ActorClone {
 
     /// The symbol that identifies this Actor to the display
     fn symbol(&self) -> char { ' ' }
+    /// The human readable full name of this Actor
+    fn long_name(&self) -> &str { "" }
     /// Determines whether this Actor is able to enter a given type of tile
     fn can_enter(&self, tile: TileType) -> bool {
         match tile {

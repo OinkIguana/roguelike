@@ -10,6 +10,7 @@ pub use self::tile::{Tile,TileType};
 
 
 /// A Map contains tiles in a grid, which make up the whole dungeon
+#[derive(Clone)]
 pub struct Map {
     pub tiles: Vec<Tile>,
     pub width: usize,

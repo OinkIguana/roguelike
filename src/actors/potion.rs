@@ -15,4 +15,5 @@ impl Actor for Potion {
     }
 
     fn symbol(&self) -> char { 'P' }
+    fn long_name(&self) -> &str { "Small Health Potion" }
 }

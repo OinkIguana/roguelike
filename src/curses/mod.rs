@@ -1,29 +1,39 @@
 use std::str::from_utf8;
 use pancurses::{Window,Input as UInput};
-use engine::{Direction,Outputter,Inputter,Action,BState,Messenger};
+use engine::{Direction,Outputter,Inputter,Action,BState};
 
 pub struct Curses<'a> {
     window: &'a Window,
     facing: Direction,
+    prev_state: Option<BState>,
 }
 
 impl<'a> Curses<'a> {
     pub fn new(window: &'a Window) -> Curses<'a> {
-        Curses{ window, facing: Direction::S }
+        Curses{ window, facing: Direction::S, prev_state: None }
     }
 
     pub fn get_item(&mut self, index: usize) -> Action {
+        self.render_inventory(index);
         match self.window.getch() {
-            Some(UInput::KeyEnter)          => Action::Use(index),
+            Some(UInput::Character('z'))    => Action::Use(index),
             Some(UInput::KeyUp)             => self.get_item(index - 1),
             Some(UInput::KeyDown)           => self.get_item(index + 1),
-            Some(UInput::Character('i'))    => self.get(),
+            Some(UInput::Character('i'))    => {
+                let ps = self.prev_state.clone().unwrap();
+                self.render(ps);
+                self.get()
+            }
             _                               => self.get_item(index),
         }
     }
 
     fn clear(&self) {
         self.window.clear();
+    }
+
+    pub fn render_inventory(&self, index: usize) {
+        
     }
 }
 
@@ -60,7 +70,7 @@ impl<'a> Inputter for Curses<'a> {
 }
 
 impl<'a> Outputter for Curses<'a> {
-    fn render(&self, state: BState) {
+    fn render(&mut self, state: BState) {
         self.clear();
         let map_str: String = state.map.tiles.iter()
             .map(|ref tile| tile.symbol())
@@ -79,5 +89,6 @@ impl<'a> Outputter for Curses<'a> {
         }
         self.window.mvaddstr(state.map.height as i32 + 3, 0, &format!("Money: {} | Health: {}", state.money, state.health));
         self.window.refresh();
+        self.prev_state = Some(state);
     }
 }

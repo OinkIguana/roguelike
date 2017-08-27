@@ -18,5 +18,5 @@ impl Actor for Fountain {
         other.set_health_rel(25);
     }
 
-    fn symbol(&self) -> char { 'F' }
+    fn symbol(&self) -> char { if self.used { 'f' } else { 'F' } }
 }

@@ -14,5 +14,6 @@ pub enum Action {
     Attack(Direction),
     Interact(Direction),
     Move(Direction),
+    Use(usize),
     Quit,
 }

@@ -15,16 +15,16 @@ pub use self::behavior::*;
 pub use self::messaging::{Message,Messenger};
 
 /// The Engine encapsulates the behaviours of the game
-pub struct Engine<'a, I: Inputter, O: Outputter, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> {
-    input: I,
-    output: O,
+pub struct Engine<'a, I: Inputter + 'a, O: Outputter + 'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> {
+    input: &'a mut I,
+    output: &'a O,
     generator: G,
     populator: &'a F,
 }
 
 impl<'a, I: Inputter, O: Outputter, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> Engine<'a, I, O, G, P, F> {
     /// Creates a new engine using the provided input and output mechanisms
-    pub fn new(input: I, output: O, generator: G, populator: &'a F) -> Engine<I, O, G, P, F> {
+    pub fn new(input: &'a mut I, output: &'a O, generator: G, populator: &'a F) -> Engine<'a, I, O, G, P, F> {
         Engine{ input, output, generator, populator }
     }
 

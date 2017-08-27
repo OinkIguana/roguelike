@@ -1,6 +1,6 @@
 use std::str::from_utf8;
 use pancurses::{Window,Input as UInput};
-use engine::{Direction,Outputter,Inputter,Action,State,Generator,Populator,Messenger};
+use engine::{Direction,Outputter,Inputter,Action,BState,Messenger};
 
 pub struct Curses<'a> {
     window: &'a Window,
@@ -17,12 +17,8 @@ impl<'a> Curses<'a> {
             Some(UInput::KeyEnter)          => Action::Use(index),
             Some(UInput::KeyUp)             => self.get_item(index - 1),
             Some(UInput::KeyDown)           => self.get_item(index + 1),
-            Some(UInput::Character('i')) |
-            // is that escape?
-            Some(UInput::KeyExit)   => {
-                self.get()
-            }
-            _ => self.get_item(index),
+            Some(UInput::Character('i'))    => self.get(),
+            _                               => self.get_item(index),
         }
     }
 
@@ -64,7 +60,7 @@ impl<'a> Inputter for Curses<'a> {
 }
 
 impl<'a> Outputter for Curses<'a> {
-    fn render<G: Generator, P: Populator, F: Fn(Messenger) -> P>(&self, state: &State<G, P, F>) {
+    fn render(&self, state: BState) {
         self.clear();
         let map_str: String = state.map.tiles.iter()
             .map(|ref tile| tile.symbol())
@@ -76,10 +72,10 @@ impl<'a> Outputter for Curses<'a> {
                 self.window.mvaddstr(i as i32 + 1, 1, &(row.to_owned()));
             }
             self.window.mvaddstr(state.map.height as i32 + 1, 1, &String::from_utf8(vec![b'-'; state.map.width]).unwrap());
-            for i in 0..state.map.height as i32 + 2 {
-                self.window.mvaddstr(i, 0, "|");
-                self.window.mvaddstr(i, state.map.width as i32 + 1, "|");
-            }
+            self.window.mv(0, 0);
+            self.window.vline('|', state.map.height as i32 + 2);
+            self.window.mv(0, state.map.width as i32 + 1);
+            self.window.vline('|', state.map.height as i32 + 2);
         }
         self.window.mvaddstr(state.map.height as i32 + 3, 0, &format!("Money: {} | Health: {}", state.money, state.health));
         self.window.refresh();

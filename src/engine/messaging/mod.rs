@@ -7,7 +7,7 @@ pub enum Message {
     GameOver,
     Die(usize),
     Drop(usize, Box<Actor>),
-    SetHealth(i8),
+    SetHealth(i32),
     UpdateMoney(i32),
 }
 

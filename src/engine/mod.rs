@@ -8,7 +8,8 @@ mod messaging;
 
 pub use self::outputter::Outputter;
 pub use self::inputter::{Inputter,Action};
-pub use self::state::State;
+pub use self::state::BState;
+use self::state::State;
 pub use self::map::{Map,Populator,TileType,Tile,Generator};
 pub use self::actor::Actor;
 pub use self::behavior::*;
@@ -32,7 +33,7 @@ impl<'a, IO: Inputter + Outputter, G: Generator, P: Populator, F: Fn(Messenger) 
     pub fn run(&mut self) {
         let mut state = State::new(&self.generator, self.populator);
         while !state.quit {
-            self.display.render(&state);
+            self.display.render(state.simplify());
             state = state.process(self.display.get());
         }
     }

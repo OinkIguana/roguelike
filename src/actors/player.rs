@@ -2,7 +2,7 @@ use engine::{Actor,Action,Behavior,Perform,IfEnterable,IfAttackable,IfInteractab
 
 #[derive(Clone)]
 pub struct Player {
-    health: i8,
+    health: i32,
     messenger: Messenger,
     inventory: Vec<Box<Actor>>,
 }
@@ -25,7 +25,7 @@ impl Actor for Player {
 
     fn can_be_attacked(&self, _: &Actor) -> bool { true }
     fn be_attacked(&mut self, other: &mut Actor) {
-        self.health -= other.attack_power() as i8;
+        self.health -= other.attack_power() as i32;
         self.messenger.send(Message::SetHealth(self.health));
         if self.health <= 0 {
             self.messenger.send(Message::GameOver);
@@ -39,7 +39,7 @@ impl Actor for Player {
         self.messenger.send(Message::UpdateMoney(value));
     }
     fn set_health_rel(&mut self, amount: i32) {
-        self.health += amount as i8;
+        self.health += amount;
         if self.health > 100 { self.health = 100; }
         self.messenger.send(Message::SetHealth(self.health));
     }

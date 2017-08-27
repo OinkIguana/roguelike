@@ -17,8 +17,14 @@ impl<'a> Curses<'a> {
         self.render_inventory(index);
         match self.window.getch() {
             Some(UInput::Character('z'))    => Action::Use(index),
-            Some(UInput::KeyUp)             => self.get_item(index - 1),
-            Some(UInput::KeyDown)           => self.get_item(index + 1),
+            Some(UInput::KeyUp)             => {
+                let len = self.prev_state.as_ref().map(|ref s| s.inventory.len()).unwrap_or(1);
+                self.get_item((index + len - 1) % len)
+            }
+            Some(UInput::KeyDown)           => {
+                let len = self.prev_state.as_ref().map(|ref s| s.inventory.len()).unwrap_or(1);
+                self.get_item((index + 1) % len)
+            }
             Some(UInput::Character('i'))    => {
                 let ps = self.prev_state.clone().unwrap();
                 self.render(ps);
@@ -33,7 +39,13 @@ impl<'a> Curses<'a> {
     }
 
     pub fn render_inventory(&self, index: usize) {
-        
+        self.clear();
+        for (i, item) in self.prev_state.clone().unwrap().inventory.iter().enumerate() {
+            if i == index {
+                self.window.mvaddch(3 + i as i32, 2, '>');
+            }
+            self.window.mvaddstr(3 + i as i32, 3, item);
+        }
     }
 }
 
@@ -62,7 +74,12 @@ impl<'a> Inputter for Curses<'a> {
             None => Action::Idle,
             // hope this has tail call optimization
             Some(UInput::Character('i')) => {
-                self.get_item(0)
+                let len = self.prev_state.as_ref().map(|ref s| s.inventory.len()).unwrap_or(1);
+                if len > 0 {
+                    self.get_item(0)
+                } else {
+                    self.get()
+                }
             }
             Some(_) => self.get(),
         }

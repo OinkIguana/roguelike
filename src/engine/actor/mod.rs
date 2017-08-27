@@ -21,8 +21,11 @@ pub trait Actor: ActorClone {
     fn interact(&mut self, other: &mut Actor) {}
     /// An action to perform when being interacted with by another Actor
     fn be_interacted_with(&mut self, other: &mut Actor) {}
+
+    /// An action to perform when using another Actor as an item
+    fn use_item(&mut self, other: &mut Actor) {}
     /// An action to perform when being used by another Actor from the inventory
-    fn be_used(self, other: &mut Actor) -> Option<Box<Actor>> where Self: Actor + Sized { None }
+    fn be_used(&mut self, other: &mut Actor) -> Option<Box<Actor>> { None }
 
     /// Whether the Actor can be attacked
     fn can_be_attacked(&self, other: &Actor) -> bool { false }
@@ -40,9 +43,10 @@ pub trait Actor: ActorClone {
     /// An action to perform when this Actor's health should be changed
     fn set_health_rel(&mut self, amount: i32) {}
     /// An action to perform when an Actor picks up another
-    fn pick_up(&mut self, item: Box<Actor>) {
-
-    }
+    fn pick_up(&mut self, item: Box<Actor>) {}
+    /// Retrieves the item at the given index owned by this Actor if there is one there.
+    /// Should remove the item from the Actor's inventory as well
+    fn get_item(&mut self, index: usize) -> Option<Box<Actor>> { None }
 
     /// The symbol that identifies this Actor to the display
     fn symbol(&self) -> char { ' ' }

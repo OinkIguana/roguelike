@@ -16,6 +16,8 @@ pub struct State<'a, G: Generator + 'a, P: Populator, F: Fn(Messenger) -> P + 'a
     level: u32,
     /// The health of the player, to display on the HUD
     health: i32,
+    /// The names of the items in the Player's current inventory
+    inventory: Vec<String>,
     messenger: Messenger,
     receiver: Receiver<Message>,
     generator: &'a G,
@@ -31,6 +33,7 @@ pub struct BState {
     pub money: i32,
     pub health: i32,
     pub level: u32,
+    pub inventory: Vec<String>,
 }
 
 impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P, F> {
@@ -49,6 +52,7 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
             receiver,
             generator,
             populator,
+            inventory: vec![],
         }
     }
 
@@ -106,6 +110,12 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
                 // TODO: make a game over screen
                 self = self.quit();
             }
+            Message::GetItem(item) => {
+                self.inventory.push(item);
+            }
+            Message::RemoveItem(index) => {
+                self.inventory.remove(index);
+            }
         }
         self
     }
@@ -117,6 +127,7 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
             money: self.money,
             level: self.level,
             health: self.health,
+            inventory: self.inventory.clone(),
         }
     }
 }

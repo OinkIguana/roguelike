@@ -19,7 +19,7 @@ impl Actor for Player {
             Action::Move(d)     => Box::new(IfEnterable(d, Perform(action))),
             Action::Attack(d)   => Box::new(IfAttackable(d, Perform(action))),
             Action::Interact(d) => Box::new(IfInteractable(d, Perform(action))),
-            _                   => Box::new(Perform(Action::Idle)),
+            action              => Box::new(Perform(action)),
         }
     }
 
@@ -45,6 +45,15 @@ impl Actor for Player {
     }
 
     fn pick_up(&mut self, item: Box<Actor>) {
+        self.messenger.send(Message::GetItem(format!("{}", item.long_name())));
         self.inventory.push(item);
+    }
+    fn get_item(&mut self, index: usize) -> Option<Box<Actor>> {
+        if index < self.inventory.len() {
+            self.messenger.send(Message::RemoveItem(index));
+            Some(self.inventory.remove(index))
+        } else {
+            None
+        }
     }
 }

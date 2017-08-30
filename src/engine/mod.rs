@@ -2,9 +2,12 @@ mod state;
 mod map;
 mod actor;
 mod behavior;
+mod query;
 mod outputter;
 mod inputter;
 mod messaging;
+mod direction;
+mod one_two;
 
 pub use self::outputter::Outputter;
 pub use self::inputter::{Inputter,Action};
@@ -13,7 +16,9 @@ use self::state::State;
 pub use self::map::{Map,Populator,TileType,Tile,Generator};
 pub use self::actor::Actor;
 pub use self::behavior::*;
+pub use self::query::*;
 pub use self::messaging::{Message,Messenger};
+pub use self::direction::Direction;
 
 /// The Engine encapsulates the behaviours of the game
 pub struct Engine<'a, IO: Inputter + Outputter, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> {
@@ -36,34 +41,5 @@ impl<'a, IO: Inputter + Outputter, G: Generator, P: Populator, F: Fn(Messenger) 
             self.display.render(state.simplify());
             state = state.process(self.display.get());
         }
-    }
-}
-
-/// Directions correspond to the cardinal directions and are used to indicate which side to move
-/// to, attack, and interact with
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub enum Direction { NW, N, NE, E, SE, S, SW, W }
-impl Direction {
-    /// A vector of the 4 cardinal directions, N, E, S, W
-    pub fn cardinals() -> Vec<Direction> {
-        vec![
-            Direction::N,
-            Direction::E,
-            Direction::S,
-            Direction::W,
-        ]
-    }
-    /// A vector of all the the variants, starting from NW and cycling clockwise around the compass
-    pub fn variants() -> Vec<Direction> {
-        vec![
-            Direction::NW,
-            Direction::N,
-            Direction::NE,
-            Direction::E,
-            Direction::SE,
-            Direction::S,
-            Direction::SW,
-            Direction::W,
-        ]
     }
 }

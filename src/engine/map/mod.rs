@@ -21,16 +21,15 @@ const GROWTH_FACTOR: f32 = 1.5;
 const MIN_HEIGHT: f32 = 20.0;
 
 impl Map {
+    fn split_coordinate(&self, index: usize) -> (usize, usize) {
+        (index % self.width, index / self.width)
+    }
+
     /// Creates a new map with the provided dimensions
     pub fn new<T: Generator>(complexity: u32, generator: &T) -> Map {
         let height: usize = (MIN_HEIGHT + GROWTH_FACTOR * complexity as f32).round() as usize;
         let width: usize = (1.618 * height as f32 * 2.0).round() as usize;
         generator.generate(complexity, width, height)
-    }
-
-    /// Given a populator, poulates the map
-    pub fn populate<T: Populator>(self, populator: &T) -> Map {
-        populator.populate(self)
     }
 
     /// Has every tile process an Action to produce the actual Action that should be taken
@@ -70,19 +69,21 @@ impl Map {
         }
     }
 
+    /// Fills a specific tile with the given contents
     pub fn fill_tile<T: Actor + 'static>(mut self, index: usize, contents: T) -> Map {
         self.tiles[index].fill(Box::new(contents));
         self
     }
 
-    pub fn fill_random_tile<T: Actor + 'static>(mut self, contents: T) -> Map {
+    /// Fills a random open tile with the given contents
+    pub fn fill_random_tile<T: Actor + 'static>(self, contents: T) -> Map {
         match self.get_random_open_tile() {
-            Some(t) => self.tiles[t].fill(Box::new(contents)),
-            None => ()
+            Some(t) => self.fill_tile(t, contents),
+            None => self
         }
-        self
     }
 
+    /// Finds a random tile that is open (available to hold something)
     pub fn get_random_open_tile(&self) -> Option<usize> {
         self.get_random_tile(|i, ref t|
             t.kind == TileType::Floor &&
@@ -99,5 +100,12 @@ impl Map {
     pub fn get_random_tile<F: Fn(usize, &Tile) -> bool>(&self, pred: F) -> Option<usize> {
         let options: Vec<usize> = self.tiles.iter().enumerate().filter(|&(i, tile)| pred(i, tile)).map(|(i, _)| i).collect();
         thread_rng().choose(&options).map(|i| *i)
+    }
+
+    /// Determines the direction between two points on the Map
+    pub fn get_direction(&self, from: usize, to: usize) -> Direction {
+        let f = self.split_coordinate(from);
+        let t = self.split_coordinate(to);
+        Direction::between(f, t)
     }
 }

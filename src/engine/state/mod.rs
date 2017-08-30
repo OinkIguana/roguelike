@@ -41,8 +41,8 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
     pub fn new(generator: &'a G, populator: &'a F) -> Self {
         let (sender, receiver) = channel();
         let messenger = Messenger::new(sender);
-        State{
-            map: Map::new(1, generator).populate(&populator(messenger.clone())),
+        let mut tstate = State{
+            map: Map::new(1, generator),
             score: 0,
             money: 0,
             level: 1,
@@ -53,7 +53,9 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
             generator,
             populator,
             inventory: vec![],
-        }
+        };
+        tstate.map = populator(tstate.messenger.clone()).populate(tstate.simplify());
+        tstate
     }
 
     /// Sets the quit field of the State
@@ -92,7 +94,8 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
         match message {
             Message::LevelEnd => {
                 self.level += 1;
-                self.map = Map::new(self.level, self.generator).populate(&(self.populator)(self.messenger.clone()));
+                self.map = Map::new(self.level, self.generator);
+                self.map = (self.populator)(self.messenger.clone()).populate(self.simplify());
             }
             Message::UpdateMoney(qty) => {
                 self.money += qty;

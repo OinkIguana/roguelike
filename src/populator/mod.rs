@@ -1,4 +1,4 @@
-use engine::{Map,Populator,Messenger};
+use engine::{BState,Map,Populator,Messenger};
 
 use super::actors::*;
 
@@ -11,8 +11,8 @@ impl Populator for Easy {
         Easy{ messenger }
     }
 
-    fn populate(&self, map: Map) -> Map {
-        map .fill_random_tile(Player::new(self.messenger.clone()))
+    fn populate(&self, state: BState) -> Map {
+        state.map.fill_random_tile(Player::new(self.messenger.clone(), state.health))
             .fill_random_tile(Stairs::new(self.messenger.clone()))
             .fill_random_tile(Gold::new(5))
             .fill_random_tile(Gold::new(5))
@@ -20,6 +20,7 @@ impl Populator for Easy {
             .fill_random_tile(Bat::new(self.messenger.clone()))
             .fill_random_tile(Bat::new(self.messenger.clone()))
             .fill_random_tile(Bat::new(self.messenger.clone()))
+            .fill_random_tile(Goblin::new(self.messenger.clone()))
             .fill_random_tile(Fountain::new())
             .fill_random_tile(Potion)
             .fill_random_tile(Potion)

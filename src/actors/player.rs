@@ -8,8 +8,8 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(messenger: Messenger) -> Player {
-        Player{ messenger, health: 100, inventory: vec![] }
+    pub fn new(messenger: Messenger, health: i32) -> Player {
+        Player{ messenger, health: health, inventory: vec![] }
     }
 }
 

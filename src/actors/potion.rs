@@ -13,6 +13,7 @@ impl Actor for Potion {
         other.pick_up(Box::new(self.clone()));
     }
 
+    fn can_be_used(&self, _: &Actor) -> bool { true }
     fn be_used(&mut self, other: &mut Actor) -> Option<Box<Actor>> {
         other.set_health_rel(25);
         None

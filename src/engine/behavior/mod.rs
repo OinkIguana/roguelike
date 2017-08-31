@@ -188,17 +188,18 @@ impl Behavior for Perform {
             Action::Use(slot) => {
                 if let Some(mut me) = map.tiles[i].contents().clone() {
                     if let Some(mut item) = me.get_item(slot) {
-                        me.use_item(&mut *item);
-                        if let Some(used_item) = item.be_used(&mut *me) {
-                            me.pick_up(used_item);
+                        if item.can_be_used(&*me) {
+                            me.use_item(&mut *item);
+                            if let Some(used_item) = item.be_used(&mut *me) {
+                                me.pick_up(used_item);
+                            }
+                            return true;
+                        } else {
+                            me.pick_up(item);
                         }
-                        true
-                    } else {
-                        false
                     }
-                } else {
-                    false
                 }
+                false
             }
             _ => true
         }

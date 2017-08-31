@@ -25,5 +25,7 @@ impl Populator for Easy {
             .fill_random_tile(Fountain::new())
             .fill_random_tile(Potion)
             .fill_random_tile(Potion)
+            .fill_random_tile(Chest::new(Gold::new(10)))
+            .fill_random_tile(Key)
     }
 }

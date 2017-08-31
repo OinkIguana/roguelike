@@ -22,6 +22,8 @@ pub trait Actor: ActorClone {
     /// An action to perform when being interacted with by another Actor
     fn be_interacted_with(&mut self, other: &mut Actor) {}
 
+    /// Whether the Actor can be used from the inventory
+    fn can_be_used(&self, other: &Actor) -> bool { false }
     /// An action to perform when using another Actor as an item
     fn use_item(&mut self, other: &mut Actor) {}
     /// An action to perform when being used by another Actor from the inventory
@@ -47,6 +49,8 @@ pub trait Actor: ActorClone {
     /// Retrieves the item at the given index owned by this Actor if there is one there.
     /// Should remove the item from the Actor's inventory as well
     fn get_item(&mut self, index: usize) -> Option<Box<Actor>> { None }
+    /// Gets the index of the item whose long_name matches the given string, or none otherwise
+    fn find_item(&self, name: &str) -> Option<usize> { None }
 
     /// The symbol that identifies this Actor to the display
     fn symbol(&self) -> char { ' ' }

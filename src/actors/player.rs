@@ -53,4 +53,7 @@ impl Actor for Player {
             None
         }
     }
+    fn find_item(&self, name: &str) -> Option<usize> {
+        self.pd.inventory.borrow().iter().position(|i| i.long_name() == name)
+    }
 }

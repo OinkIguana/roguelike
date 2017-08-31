@@ -1,4 +1,5 @@
-use engine::{BState,Map,Populator,Messenger};
+use std::rc::Rc;
+use engine::{PlayerData,Map,Populator,Messenger};
 
 use super::actors::*;
 
@@ -11,8 +12,8 @@ impl Populator for Easy {
         Easy{ messenger }
     }
 
-    fn populate(&self, state: BState) -> Map {
-        state.map.fill_random_tile(Player::new(self.messenger.clone(), state.health))
+    fn populate(&self, map: Map, pd: Rc<PlayerData>) -> Map {
+        map.fill_random_tile(Player::new(self.messenger.clone(), pd))
             .fill_random_tile(Stairs::new(self.messenger.clone()))
             .fill_random_tile(Gold::new(5))
             .fill_random_tile(Gold::new(5))

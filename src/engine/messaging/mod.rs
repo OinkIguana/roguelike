@@ -7,10 +7,6 @@ pub enum Message {
     GameOver,
     Die(usize),
     Drop(usize, Box<Actor>),
-    SetHealth(i32),
-    UpdateMoney(i32),
-    GetItem(String),
-    RemoveItem(usize),
 }
 
 #[derive(Clone)]

@@ -1,16 +1,16 @@
-use engine::{Actor,Action,Behavior,Perform,IfEnterable,IfAttackable,IfInteractable,Messenger,Message};
+use std::rc::Rc;
+use engine::*;
 
 /// The Player is the character which is controlled by the player.
 #[derive(Clone)]
 pub struct Player {
-    health: i32,
+    pd: Rc<PlayerData>,
     messenger: Messenger,
-    inventory: Vec<Box<Actor>>,
 }
 
 impl Player {
-    pub fn new(messenger: Messenger, health: i32) -> Player {
-        Player{ messenger, health: health, inventory: vec![] }
+    pub fn new(messenger: Messenger, pd: Rc<PlayerData>) -> Player {
+        Player{ messenger, pd }
     }
 }
 
@@ -26,9 +26,8 @@ impl Actor for Player {
 
     fn can_be_attacked(&self, _: &Actor) -> bool { true }
     fn be_attacked(&mut self, other: &mut Actor) {
-        self.health -= other.attack_power() as i32;
-        self.messenger.send(Message::SetHealth(self.health));
-        if self.health <= 0 {
+        self.pd.health.set(self.pd.health.get() - other.attack_power() as i32);
+        if self.pd.health.get() <= 0 {
             self.messenger.send(Message::GameOver);
         }
     }
@@ -37,22 +36,19 @@ impl Actor for Player {
     fn symbol(&self) -> char { '@' }
 
     fn set_money_rel(&mut self, value: i32) {
-        self.messenger.send(Message::UpdateMoney(value));
+        self.pd.money.set(self.pd.money.get() + value);
     }
     fn set_health_rel(&mut self, amount: i32) {
-        self.health += amount;
-        if self.health > 100 { self.health = 100; }
-        self.messenger.send(Message::SetHealth(self.health));
+        self.pd.health.set(self.pd.health.get() + amount);
+        if self.pd.health.get() > 100 { self.pd.health.set(100); }
     }
 
     fn pick_up(&mut self, item: Box<Actor>) {
-        self.messenger.send(Message::GetItem(format!("{}", item.long_name())));
-        self.inventory.push(item);
+        self.pd.inventory.borrow_mut().push(item);
     }
     fn get_item(&mut self, index: usize) -> Option<Box<Actor>> {
-        if index < self.inventory.len() {
-            self.messenger.send(Message::RemoveItem(index));
-            Some(self.inventory.remove(index))
+        if index < self.pd.inventory.borrow().len() {
+            Some(self.pd.inventory.borrow_mut().remove(index))
         } else {
             None
         }

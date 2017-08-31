@@ -11,7 +11,7 @@ mod one_two;
 
 pub use self::outputter::Outputter;
 pub use self::inputter::{Inputter,Action};
-pub use self::state::BState;
+pub use self::state::{BState,PlayerData};
 use self::state::State;
 pub use self::map::{Map,Populator,TileType,Tile,Generator};
 pub use self::actor::Actor;

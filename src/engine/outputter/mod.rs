@@ -1,4 +1,4 @@
-use super::{BState,Generator,Populator,Messenger};
+use super::BState;
 
 /// An Outputter is used to display the game to the user
 pub trait Outputter {

@@ -108,4 +108,11 @@ impl Map {
         let t = self.split_coordinate(to);
         Direction::between(f, t)
     }
+
+    /// Determines the distance between two points on the Map
+    pub fn get_distance(&self, from: usize, to: usize) -> usize {
+        let f = self.split_coordinate(from);
+        let t = self.split_coordinate(to);
+        ((f.0 as i32 - t.0 as i32).abs() + (f.1 as i32 - t.1 as i32).abs()) as usize
+    }
 }

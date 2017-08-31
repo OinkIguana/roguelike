@@ -219,5 +219,5 @@ pub trait Behavior {
         OrElse(self, next)
     }
 
-    fn exec(&self, i: usize, &mut Map) -> bool;
+    fn exec(&self, usize, &mut Map) -> bool;
 }

@@ -20,7 +20,7 @@ pub use self::query::*;
 pub use self::messaging::{Message,Messenger};
 pub use self::direction::Direction;
 
-/// The Engine encapsulates the behaviours of the game
+/// The Engine manages the internal behaviour of the game
 pub struct Engine<'a, IO: Inputter + Outputter, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> {
     display: IO,
     generator: G,

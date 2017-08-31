@@ -1,5 +1,6 @@
 use engine::{Actor,Action,Behavior,Perform,IfEnterable,IfAttackable,IfInteractable,Messenger,Message};
 
+/// The Player is the character which is controlled by the player.
 #[derive(Clone)]
 pub struct Player {
     health: i32,

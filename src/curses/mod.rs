@@ -30,7 +30,7 @@ impl<'a> Curses<'a> {
                 self.render(ps);
                 self.get()
             }
-            _                               => self.get_item(index),
+            _ => self.get_item(index),
         }
     }
 

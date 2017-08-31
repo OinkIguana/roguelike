@@ -1,7 +1,21 @@
 use rand::{thread_rng,Rng};
-use engine::{Actor,Action,Behavior,ExecQuery,Query,IfOpen,IfAttackable,Perform,Switch,Find,Messenger,Message,DirectionTo};
+use engine::*;
 use super::Gold;
 
+/// A Goblin is the most standard enemy. It will move around randomly until the player passes
+/// within 5 spaces, then it will chase the player until they have moved out of range again. A
+/// Goblin cannot pass through doors.
+///
+/// Symbol: `N`
+/// Affinity: -4
+///
+/// Stats:
+/// *   Health - 25
+/// *   Attack - 4
+/// *   Defense - 0
+///
+/// Drops:
+/// *   Gold x 3
 #[derive(Clone)]
 pub struct Goblin {
     health: i8,
@@ -17,13 +31,20 @@ impl Goblin {
 impl Actor for Goblin {
     fn react(&self, _: Action) -> Box<Behavior> {
         let here = self.get_location();
-        let query = Find(|tile| tile.contents().as_ref().map(|a| a.symbol() == '@').unwrap_or(false))
-            .then(move |i| DirectionTo(here, i));
-        Box::new(ExecQuery(query, |d| {
-            let mut dirs = d.split().as_vec();
-            thread_rng().shuffle(&mut dirs);
-            let attacks: Vec<IfAttackable<Perform>> = dirs.iter().cloned().map(|d| IfAttackable(d, Perform(Action::Attack(d)))).collect();
-            let moves: Vec<IfOpen<Perform>> = dirs.iter().cloned().map(|d| IfOpen(d, Perform(Action::Move(d)))).collect();
+        let direction = Find(|tile| tile.contents().as_ref().map(|a| a.symbol() == '@').unwrap_or(false)).then(move |i| DirectionTo(here, i));
+        let distance = Find(|tile| tile.contents().as_ref().map(|a| a.symbol() == '@').unwrap_or(false)).then(move |i| DistanceTo(here, i));
+        Box::new(ExecQuery((distance, direction), |(dist, dir)| {
+            let (attacks, moves) = if dist < 5 {
+                let mut dirs = dir.split().as_vec();
+                thread_rng().shuffle(&mut dirs);
+                let attacks: Vec<IfAttackable<Perform>> = dirs.iter().cloned().map(|d| IfAttackable(d, Perform(Action::Attack(d)))).collect();
+                let moves: Vec<IfOpen<Perform>> = dirs.iter().cloned().map(|d| IfOpen(d, Perform(Action::Move(d)))).collect();
+                (attacks, moves)
+            } else {
+                let mut moves: Vec<IfOpen<Perform>> = Direction::cardinals().iter().cloned().map(|d| IfOpen(d, Perform(Action::Move(d)))).collect();
+                thread_rng().shuffle(&mut moves);
+                (vec![], moves)
+            };
             Switch(attacks).or_else(Switch(moves))
         }))
     }
@@ -42,6 +63,14 @@ impl Actor for Goblin {
 
     fn symbol(&self) -> char { 'N' }
     fn affinity(&self) -> i8 { -4 }
+
+    fn can_enter(&self, tile: TileType) -> bool {
+        use self::TileType::*;
+        match tile {
+            Wall | Empty | Door => false,
+            _ => true,
+        }
+    }
 
     fn get_location(&self) -> usize { return self.location; }
     fn set_location(&mut self, location: usize) { self.location = location; }

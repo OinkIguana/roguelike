@@ -54,8 +54,9 @@ pub trait Actor: ActorClone {
     fn long_name(&self) -> &str { "" }
     /// Determines whether this Actor is able to enter a given type of tile
     fn can_enter(&self, tile: TileType) -> bool {
+        use self::TileType::*;
         match tile {
-            TileType::Wall | TileType::Empty => false,
+            Wall | Empty => false,
             _ => true,
         }
     }

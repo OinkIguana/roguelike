@@ -1,5 +1,9 @@
 use engine::{Actor};
 
+/// A Potion can be picked up by certain characters by stepping on it. Using a potion consumes it
+/// to restore 25 health.
+///
+/// Symbol: `P`
 #[derive(Clone)]
 pub struct Potion;
 

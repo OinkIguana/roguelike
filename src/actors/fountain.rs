@@ -1,5 +1,8 @@
 use engine::Actor;
 
+/// A Fountain is a structure which the Player can interact with once to restore 25 health.
+///
+/// Symbol: `F` unused, `f` used
 #[derive(Clone)]
 pub struct Fountain {
     used: bool

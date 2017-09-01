@@ -3,6 +3,8 @@ use rand::{thread_rng,Rng};
 use rand::distributions::{IndependentSample,Range,Normal};
 use engine::{Map,Tile,TileType,Direction,Generator};
 
+/// The standard map, which gets a little bigger each floor
+#[allow(dead_code)]
 pub struct Standard;
 impl Generator for Standard {
     /// Given a complexity and dimensions, an entire dungeon map is created
@@ -25,6 +27,8 @@ impl Generator for Standard {
     }
 }
 
+/// The standard map but with fog of war preventing seeing into unexplored rooms
+#[allow(dead_code)]
 pub struct Foggy;
 impl Generator for Foggy {
     /// Given a complexity and dimensions, an entire dungeon map is created
@@ -111,7 +115,7 @@ fn generate_tiles(room_count: u8, width: usize, height: usize, foggy: bool) -> G
         for x in room.x..room.x + room.w {
             for y in room.y..room.y + room.h {
                 let index = y * width + x;
-                tiles[index] = Tile::new(TileType::Floor, index, tiles[index].foggy());
+                tiles[index] = tiles[index].clone().set_kind(TileType::Floor);
             }
         }
     }
@@ -214,8 +218,7 @@ fn add_halls(rooms: Grid<Tile>, halls: Grid<bool>) -> Grid<Tile> {
         .iter()
         .to_owned()
         .zip(halls.grid.iter().map(|b| *b))
-        .enumerate()
-        .map(|(i, (tile, hall))| if hall && tile.kind() == TileType::Empty { Tile::new(TileType::Hall, i, tile.foggy()) } else { tile.clone() })
+        .map(|(tile, hall)| if hall && tile.kind() == TileType::Empty { tile.clone().set_kind(TileType::Hall) } else { tile.clone() })
         .collect(), width: rooms.width, height: rooms.height }
 }
 
@@ -224,7 +227,7 @@ fn trim_halls(Grid{ grid: tiles, width, height}: Grid<Tile>) -> Grid<Tile> {
     let no_fats = (0..width * height)
         .fold(tiles, |mut tiles, index|
             if is_fat_hallway(&tiles, index, width, height) {
-                tiles[index] = Tile::new(TileType::Empty, index, tiles[index].foggy());
+                tiles[index] = tiles[index].clone().set_kind(TileType::Empty);
                 tiles
             } else {
                 tiles
@@ -273,7 +276,7 @@ fn remove_dead_end(Grid{ grid: mut tiles, width, height }: Grid<Tile>, index: us
         .filter(|n| tiles[*n].kind() != TileType::Empty)
         .collect();
     if neighbours.len() > 1 { return Grid{ grid: tiles, width, height }; }
-    tiles[index] = Tile::new(TileType::Empty, index, tiles[index].foggy());
+    tiles[index] = tiles[index].clone().set_kind(TileType::Empty);
     if neighbours.len() > 0 {
         remove_dead_end(Grid{ grid: tiles, width, height }, neighbours[0])
     } else {
@@ -291,10 +294,9 @@ fn add_walls(Grid{ grid: tiles, width, height }: Grid<Tile>) -> Grid<Tile> {
                 .flat_map(|o| o.map(|n| tiles[n].kind() == TileType::Floor).and_then(|b| if b { Some(true) } else { None }))
                 .count())
         .zip(tiles.iter())
-        .enumerate()
-        .map(|(i, (c, t))| match t.kind() {
-                TileType::Empty if c > 0    => Tile::new(TileType::Wall, i, t.foggy()),
-                TileType::Hall if c >= 2    => Tile::new(TileType::Door, i, t.foggy()),
+        .map(|(c, t)| match t.kind() {
+                TileType::Empty if c > 0    => t.clone().set_kind(TileType::Wall),
+                TileType::Hall if c >= 2    => t.clone().set_kind(TileType::Door),
                 _                           => t.clone(),
             })
         .collect(), width, height }

@@ -47,8 +47,13 @@ pub struct Tile {
 }
 
 impl Tile {
+    /// Creates a new tile
     pub fn new(kind: TileType, location: usize, foggy: bool) -> Tile {
         Tile{ kind, location, contents: None, foggy }
+    }
+    /// Produces a new Tile with the kind changed
+    pub fn set_kind(self, kind: TileType) -> Self {
+        Tile{ kind, ..self }
     }
 
     /// Move this Cell's contents to the provided cell, destroying what was there

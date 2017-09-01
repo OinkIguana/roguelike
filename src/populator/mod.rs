@@ -13,9 +13,9 @@ impl Populator for Easy {
     }
 
     fn populate(&self, map: Map, pd: Rc<PlayerData>) -> Map {
-        let tile = map.get_random_open_tile().expect("There must be at least one tile available still...");
-        self.messenger.send(Message::Reveal(tile));
-        map .fill_tile(tile, Player::new(self.messenger.clone(), pd))
+        let player_tile = map.get_random_open_tile().expect("There must be at least one tile available still...");
+        self.messenger.send(Message::Reveal(player_tile));
+        map .fill_tile(player_tile, Player::new(self.messenger.clone(), pd))
             .fill_random_tile(Stairs::new(self.messenger.clone()))
             .fill_random_tile(Gold::new(5))
             .fill_random_tile(Gold::new(5))

@@ -8,6 +8,9 @@ pub trait Actor: ActorClone {
 
     // Standard game events
 
+    fn on_idle(&mut self) {}
+    fn on_move(&mut self) {}
+
     /// Whether the Actor can be stepped on and consumed
     fn can_be_stepped_on(&self, other: &Actor) -> bool { false }
     /// An action to perform when stepping on another Actor

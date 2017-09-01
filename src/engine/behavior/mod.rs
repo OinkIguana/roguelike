@@ -66,7 +66,7 @@ impl<T: Behavior> Behavior for IfOpen<T> {
         let open = map
             .get_neighbouring_tile_index(i, self.0)
             .map(|n| &map.tiles[n])
-            .map(|t| map.tiles[i].contents().clone().map(|a| a.can_enter(t.kind)).unwrap_or(false) && t.contents().is_none())
+            .map(|t| map.tiles[i].contents().clone().map(|a| a.can_enter(t.kind())).unwrap_or(false) && t.contents().is_none())
             .unwrap_or(false);
         if open {
             self.1.exec(i, map)
@@ -87,7 +87,7 @@ impl<T: Behavior> Behavior for IfEnterable<T> {
                 .get_neighbouring_tile_index(i, self.0)
                 .map(|n| &map.tiles[n])
                 .map(|t|
-                    map.tiles[i].contents().clone().map(|a| a.can_enter(t.kind)).unwrap_or(false) &&
+                    map.tiles[i].contents().clone().map(|a| a.can_enter(t.kind())).unwrap_or(false) &&
                     t.contents().clone().map(|a| a.can_be_stepped_on(&*me)).unwrap_or(true))
                 .unwrap_or(false);
             if open {
@@ -154,6 +154,10 @@ impl Behavior for Perform {
                     let (a, b) = map.tiles[i].clone().move_to(map.tiles[neighbour].clone());
                     replace(&mut map.tiles[i], a);
                     replace(&mut map.tiles[neighbour], b);
+                    if let Some(mut me) = map.tiles[neighbour].contents().clone() {
+                        me.on_move();
+                        map.tiles[neighbour].fill(me);
+                    }
                     true
                 } else {
                     false
@@ -201,7 +205,14 @@ impl Behavior for Perform {
                 }
                 false
             }
-            _ => true
+            Action::Idle => {
+                if let Some(mut me) = map.tiles[i].contents().clone() {
+                    me.on_idle();
+                    map.tiles[i].fill(me);
+                }
+                true
+            },
+            _ => panic!("Quit should not be processed!")
         }
     }
 }

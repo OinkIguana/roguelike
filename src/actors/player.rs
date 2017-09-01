@@ -6,11 +6,12 @@ use engine::*;
 pub struct Player {
     pd: Rc<PlayerData>,
     messenger: Messenger,
+    location: usize,
 }
 
 impl Player {
     pub fn new(messenger: Messenger, pd: Rc<PlayerData>) -> Player {
-        Player{ messenger, pd }
+        Player{ messenger, pd, location: 0, }
     }
 }
 
@@ -22,6 +23,10 @@ impl Actor for Player {
             Action::Interact(d) => Box::new(IfInteractable(d, Perform(action))),
             action              => Box::new(Perform(action)),
         }
+    }
+
+    fn on_move(&mut self) {
+        self.messenger.send(Message::Reveal(self.get_location()));
     }
 
     fn can_be_attacked(&self, _: &Actor) -> bool { true }
@@ -55,5 +60,12 @@ impl Actor for Player {
     }
     fn find_item(&self, name: &str) -> Option<usize> {
         self.pd.inventory.borrow().iter().position(|i| i.long_name() == name)
+    }
+
+    fn get_location(&self) -> usize {
+        self.location
+    }
+    fn set_location(&mut self, loc: usize) {
+        self.location = loc;
     }
 }

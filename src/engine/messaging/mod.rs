@@ -7,6 +7,7 @@ pub enum Message {
     GameOver,
     Die(usize),
     Drop(usize, Box<Actor>),
+    Reveal(usize),
 }
 
 #[derive(Clone)]

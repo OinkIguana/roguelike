@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use std::cell::{Cell,RefCell};
 use std::sync::mpsc::{channel,Receiver};
-use super::{Action,Behavior,Map,Message,Messenger,Generator,Populator,Actor};
+use super::{Action,Behavior,Map,Message,Messenger,Generator,Populator,Actor,TileType,Direction};
 
 pub struct PlayerData {
     /// The total score accumulated by the player
@@ -61,7 +61,7 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
         let messenger = Messenger::new(sender);
         let pd = Rc::new(PlayerData::new());
         let map = populator(messenger.clone()).populate(Map::new(1, generator), pd.clone());
-        Self{
+        let state = Self{
             map,
             level: 0,
             pd,
@@ -70,7 +70,8 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
             receiver,
             generator,
             populator,
-        }
+        };
+        state.process_all(vec![])
     }
 
     /// Sets the quit field of the State
@@ -95,12 +96,8 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
         for (index, behavior) in behaviors.into_iter().enumerate() {
             behavior.exec(index, &mut self.map);
         }
-        loop {
-            if let Ok(message) = self.receiver.try_recv() {
-                self = self.respond_to(message);
-            } else {
-                break;
-            }
+        while let Ok(message) = self.receiver.try_recv() {
+            self = self.respond_to(message);
         }
         self
     }
@@ -111,18 +108,57 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
                 self.level += 1;
                 self.map = (self.populator)(self.messenger.clone()).populate(Map::new(self.level, self.generator), self.pd.clone());
             }
-            Message::Die(index) => {
-                self.map.tiles[index].empty();
+            Message::Die(i) => {
+                self.map.tiles[i].empty();
             }
-            Message::Drop(index, actor) => {
-                self.map.tiles[index].fill(actor);
+            Message::Drop(i, actor) => {
+                self.map.tiles[i].fill(actor);
             }
             Message::GameOver => {
                 // TODO: make a game over screen
                 self = self.quit();
+            },
+            Message::Reveal(i) => {
+                use self::TileType::*;
+                // TODO: this doesn't work!
+                self.flood_reveal(i);
+                if self.map.tiles[i].kind() == Door {
+                    let neighbours: Vec<usize> = Direction::cardinals()
+                        .into_iter()
+                        .filter_map(|dir| self.map.get_neighbouring_tile_index(i, dir))
+                        .collect();
+                    for n in neighbours.into_iter() { // any way to do this without collecting and re-iterating?
+                        self.flood_reveal(n);
+                    }
+                }
             }
         }
         self
+    }
+
+    fn flood_reveal(&mut self, index: usize) {
+        use self::TileType::*;
+        if !self.map.tiles[index].foggy() { return; }
+        self.map.tiles[index].reveal();
+        if self.map.tiles[index].kind() == Floor || self.map.tiles[index].kind() == Hall {
+            let neighbours: Vec<usize> = Direction:: variants()
+                .into_iter()
+                .filter_map(|dir| self.map.get_neighbouring_tile_index(index, dir))
+                .filter(|n| match self.map.tiles[index].kind() {
+                    Floor =>
+                        self.map.tiles[*n].kind() == Floor ||
+                        self.map.tiles[*n].kind() == Door ||
+                        self.map.tiles[*n].kind() == Wall,
+                    Hall =>
+                        self.map.tiles[*n].kind() == Hall ||
+                        self.map.tiles[*n].kind() == Door,
+                    _ => false
+                })
+                .collect();
+            for n in neighbours.into_iter() {
+                self.flood_reveal(n);
+            }
+        }
     }
 
     pub fn simplify(&self) -> BState {

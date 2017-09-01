@@ -40,14 +40,15 @@ impl Display for TileType {
 /// optionally hold one Actor
 #[derive(Clone)]
 pub struct Tile {
-    pub kind: TileType,
+    kind: TileType,
+    foggy: bool,
     location: usize,
     contents: Option<Box<Actor>>,
 }
 
 impl Tile {
-    pub fn new(kind: TileType, location: usize) -> Tile {
-        Tile{ kind, location, contents: None }
+    pub fn new(kind: TileType, location: usize, foggy: bool) -> Tile {
+        Tile{ kind, location, contents: None, foggy }
     }
 
     /// Move this Cell's contents to the provided cell, destroying what was there
@@ -56,8 +57,8 @@ impl Tile {
             Some(mut actor) => {
                 actor.set_location(tile.location);
                 (   // TODO: any way to avoid cloning here?
-                    Tile{ kind: self.kind, location: self.location, contents: None },
-                    Tile{ kind: tile.kind, location: tile.location, contents: Some(actor) },
+                    Tile{ contents: None, ..self },
+                    Tile{ contents: Some(actor), ..tile },
                 )
             },
             _ => (self, tile)
@@ -76,7 +77,11 @@ impl Tile {
 
     /// Determines what symbol should be displayed for this tile, taking into account its contents
     pub fn symbol(&self) -> char {
-        self.contents.as_ref().map_or(self.empty_symbol(), |ref c| c.symbol())
+        if self.foggy() {
+            ' '
+        } else {
+            self.contents.as_ref().map_or(self.empty_symbol(), |ref c| c.symbol())
+        }
     }
 
     /// Determines what symbol should be displayed for this tile when it is empty
@@ -97,6 +102,18 @@ impl Tile {
             TileType::Floor | TileType::Hall | TileType::Door => true,
             _ => false,
         }
+    }
+
+    pub fn reveal(&mut self) {
+        self.foggy = false;
+    }
+
+    pub fn kind(&self) -> TileType {
+        self.kind
+    }
+
+    pub fn foggy(&self) -> bool {
+        self.foggy
     }
 }
 

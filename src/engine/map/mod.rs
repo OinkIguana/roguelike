@@ -86,11 +86,11 @@ impl Map {
     /// Finds a random tile that is open (available to hold something)
     pub fn get_random_open_tile(&self) -> Option<usize> {
         self.get_random_tile(|i, ref t|
-            t.kind == TileType::Floor &&
+            t.kind() == TileType::Floor &&
             t.contents().is_none() &&
             Direction::cardinals().into_iter().all(|d|
                 self.get_neighbouring_tile_index(i, d)
-                    .map(|n| self.tiles[n].kind != TileType::Door)
+                    .map(|n| self.tiles[n].kind() != TileType::Door)
                     .unwrap_or(false)
             )
         )

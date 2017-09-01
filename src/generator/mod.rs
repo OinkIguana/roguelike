@@ -3,7 +3,6 @@ use rand::{thread_rng,Rng};
 use rand::distributions::{IndependentSample,Range,Normal};
 use engine::{Map,Tile,TileType,Direction,Generator};
 
-
 pub struct Standard;
 impl Generator for Standard {
     /// Given a complexity and dimensions, an entire dungeon map is created
@@ -16,7 +15,29 @@ impl Generator for Standard {
     /// 6.  Add wall tiles around the rooms, and doors where the hallways enter the rooms
     fn generate(&self, complexity: u32, width: usize, height: usize) -> Map {
         let room_count = min(MIN_ROOMS + (complexity / 3) as u8, MAX_ROOMS);
-        let rooms = generate_tiles(room_count, width, height);
+        let rooms = generate_tiles(room_count, width, height, false);
+        let graph = graph_tiles(&rooms);
+        let halls = generate_halls(graph);
+        let rooms_and_halls = add_halls(rooms, halls);
+        let trimmed = trim_halls(rooms_and_halls);
+        let tiles = add_walls(trimmed);
+        Map{ tiles: tiles.grid, width, height }
+    }
+}
+
+pub struct Foggy;
+impl Generator for Foggy {
+    /// Given a complexity and dimensions, an entire dungeon map is created
+    ///
+    /// 1.  Generate the set of tiles, some floors and some empty, with fog enabled
+    /// 2.  Make a graph of which tiles are connected in which rooms
+    /// 3.  Connect the entire graph of rooms by hallways
+    /// 4.  Merge the hallways with the floors
+    /// 5.  Strip out all the unnecessary halls (double wide, dead end)
+    /// 6.  Add wall tiles around the rooms, and doors where the hallways enter the rooms
+    fn generate(&self, complexity: u32, width: usize, height: usize) -> Map {
+        let room_count = min(MIN_ROOMS + (complexity / 3) as u8, MAX_ROOMS);
+        let rooms = generate_tiles(room_count, width, height, true);
         let graph = graph_tiles(&rooms);
         let halls = generate_halls(graph);
         let rooms_and_halls = add_halls(rooms, halls);
@@ -52,11 +73,11 @@ impl Rectangle {
 ///
 /// Some rectangles are generated randomly, and placed on the map. Some collisions are allowed, but
 /// only up to a maximum number of times so that the map always has some disconnnected rooms.
-fn generate_tiles(room_count: u8, width: usize, height: usize) -> Grid<Tile> {
+fn generate_tiles(room_count: u8, width: usize, height: usize, foggy: bool) -> Grid<Tile> {
     let mut rng = thread_rng();
     let mut merges_available: usize = room_count as usize / 2;
 
-    let mut tiles: Vec<Tile> = (0..width * height).into_iter().map(|i| Tile::new(TileType::Empty, i)).collect();
+    let mut tiles: Vec<Tile> = (0..width * height).into_iter().map(|i| Tile::new(TileType::Empty, i, foggy)).collect();
     let x_range = Range::new(1, width);
     let y_range = Range::new(1, height);
     let w_range = Normal::new(16., 1.);
@@ -90,7 +111,7 @@ fn generate_tiles(room_count: u8, width: usize, height: usize) -> Grid<Tile> {
         for x in room.x..room.x + room.w {
             for y in room.y..room.y + room.h {
                 let index = y * width + x;
-                tiles[index].kind = TileType::Floor;
+                tiles[index] = Tile::new(TileType::Floor, index, tiles[index].foggy());
             }
         }
     }
@@ -106,8 +127,8 @@ fn graph_tiles(&Grid{ grid: ref tiles, width, height }: &Grid<Tile>) -> Grid<u8>
         height,
         grid: tiles.iter().enumerate()
         .fold((vec![0; tiles.len()], 1), |(graph, room_index), (index, tile)|
-            if tile.kind == TileType::Floor && graph[index] == 0 {
-                (flood(graph, room_index, index, width, height, tiles, &|tile| tile.kind == TileType::Floor), room_index + 1)
+            if tile.kind() == TileType::Floor && graph[index] == 0 {
+                (flood(graph, room_index, index, width, height, tiles, &|tile| tile.kind() == TileType::Floor), room_index + 1)
             } else {
                 (graph, room_index)
             }
@@ -194,7 +215,7 @@ fn add_halls(rooms: Grid<Tile>, halls: Grid<bool>) -> Grid<Tile> {
         .to_owned()
         .zip(halls.grid.iter().map(|b| *b))
         .enumerate()
-        .map(|(i, (tile, hall))| if hall && tile.kind == TileType::Empty { Tile::new(TileType::Hall, i) } else { tile.clone() })
+        .map(|(i, (tile, hall))| if hall && tile.kind() == TileType::Empty { Tile::new(TileType::Hall, i, tile.foggy()) } else { tile.clone() })
         .collect(), width: rooms.width, height: rooms.height }
 }
 
@@ -203,7 +224,7 @@ fn trim_halls(Grid{ grid: tiles, width, height}: Grid<Tile>) -> Grid<Tile> {
     let no_fats = (0..width * height)
         .fold(tiles, |mut tiles, index|
             if is_fat_hallway(&tiles, index, width, height) {
-                tiles[index].kind = TileType::Empty;
+                tiles[index] = Tile::new(TileType::Empty, index, tiles[index].foggy());
                 tiles
             } else {
                 tiles
@@ -221,11 +242,11 @@ fn trim_halls(Grid{ grid: tiles, width, height}: Grid<Tile>) -> Grid<Tile> {
 ///   #
 /// ```
 fn is_fat_hallway(tiles: &Vec<Tile>, index: usize, width: usize, height: usize) -> bool {
-    if tiles[index].kind != TileType::Hall { return false; }
+    if tiles[index].kind() != TileType::Hall { return false; }
     let neighbours: String =
         Direction::variants()
             .into_iter()
-            .map(|d| Map::neighbouring_tile_index(index, width, height, d).map(|n| tiles[n].kind))
+            .map(|d| Map::neighbouring_tile_index(index, width, height, d).map(|n| tiles[n].kind()))
             .map(|o| match o {
                 None | Some(TileType::Empty) => ' ',
                 _                            => '.',
@@ -249,10 +270,10 @@ fn remove_dead_end(Grid{ grid: mut tiles, width, height }: Grid<Tile>, index: us
         .into_iter()
         .map(|d| Map::neighbouring_tile_index(index, width, height, d))
         .flat_map(|n| n)
-        .filter(|n| tiles[*n].kind != TileType::Empty)
+        .filter(|n| tiles[*n].kind() != TileType::Empty)
         .collect();
     if neighbours.len() > 1 { return Grid{ grid: tiles, width, height }; }
-    tiles[index].kind = TileType::Empty;
+    tiles[index] = Tile::new(TileType::Empty, index, tiles[index].foggy());
     if neighbours.len() > 0 {
         remove_dead_end(Grid{ grid: tiles, width, height }, neighbours[0])
     } else {
@@ -267,13 +288,13 @@ fn add_walls(Grid{ grid: tiles, width, height }: Grid<Tile>) -> Grid<Tile> {
     Grid{ grid: (0..width * height)
         .map(|i| Direction::variants().into_iter()
                 .map(|d| Map::neighbouring_tile_index(i, width, height, d))
-                .flat_map(|o| o.map(|n| tiles[n].kind == TileType::Floor).and_then(|b| if b { Some(true) } else { None }))
+                .flat_map(|o| o.map(|n| tiles[n].kind() == TileType::Floor).and_then(|b| if b { Some(true) } else { None }))
                 .count())
         .zip(tiles.iter())
         .enumerate()
-        .map(|(i, (c, t))| match t.kind {
-                TileType::Empty if c > 0    => Tile::new(TileType::Wall, i),
-                TileType::Hall if c >= 2    => Tile::new(TileType::Door, i),
+        .map(|(i, (c, t))| match t.kind() {
+                TileType::Empty if c > 0    => Tile::new(TileType::Wall, i, t.foggy()),
+                TileType::Hall if c >= 2    => Tile::new(TileType::Door, i, t.foggy()),
                 _                           => t.clone(),
             })
         .collect(), width, height }

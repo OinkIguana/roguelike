@@ -1,6 +1,6 @@
 use engine::*;
 
-/// A key is used to open a chest. Each key is single use.
+/// A `Key` is used to open a chest. Each `Key` is single use.
 ///
 /// Symbol: `K`
 #[derive(Clone)]

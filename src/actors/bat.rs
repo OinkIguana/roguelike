@@ -2,19 +2,22 @@ use rand::{thread_rng,Rng};
 use engine::*;
 use super::Gold;
 
-/// A Bat is the most simple enemy, which moves around randomly, attacking the Player if it happens
-/// to be beside them.
+/// A `Bat` is the most simple enemy, which moves around randomly, attacking the `Player` if it
+/// happens to be beside them.
 ///
 /// Symbol: `B`
+///
 /// Affinity: -1
 ///
 /// Stats:
+///
 /// *   Health - 15
 /// *   Attack - 2
 /// *   Defense - 0
 ///
 /// Drops:
-/// *   Gold x 1
+///
+/// *   1x Gold
 #[derive(Clone)]
 pub struct Bat {
     health: i8,

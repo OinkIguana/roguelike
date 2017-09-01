@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use engine::*;
 
-/// The Player is the character which is controlled by the player.
+/// The `Player` is the character which is controlled by the player.
 #[derive(Clone)]
 pub struct Player {
     pd: Rc<PlayerData>,

@@ -1,6 +1,6 @@
 use engine::{Actor,Messenger,Message};
 
-/// The Stairs are the goal for each floor. The level ends when the Player steps on them.
+/// The `Stairs` are the goal for each floor. The level ends when the `Player` steps on them.
 ///
 /// Symbol: `/`
 #[derive(Clone)]

@@ -2,19 +2,22 @@ use rand::{thread_rng,Rng};
 use engine::*;
 use super::Gold;
 
-/// A Goblin is the most standard enemy. It will move around randomly until the player passes
-/// within 5 spaces, then it will chase the player until they have moved out of range again. A
-/// Goblin cannot pass through doors.
+/// A `Goblin` is the most standard enemy. It will move around randomly until the `Player` passes
+/// within 5 spaces, then it will chase the `Player` until they have moved out of range again. A
+/// `Goblin` cannot pass through doors.
 ///
 /// Symbol: `N`
+///
 /// Affinity: -4
 ///
 /// Stats:
+///
 /// *   Health - 25
 /// *   Attack - 4
 /// *   Defense - 0
 ///
 /// Drops:
+///
 /// *   Gold x 3
 #[derive(Clone)]
 pub struct Goblin {

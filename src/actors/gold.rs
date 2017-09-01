@@ -1,7 +1,7 @@
 use engine::Actor;
 
-/// Gold is currency, which appears on the ground and is dropped by enemies. It can be picked up by
-/// some characters by stepping on it.
+/// `Gold` is currency, which appears on the ground and is dropped by enemies. It can be picked up
+/// by some characters by stepping on it.
 ///
 /// Symbol: `G`
 #[derive(Clone)]

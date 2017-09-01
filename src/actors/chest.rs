@@ -1,9 +1,9 @@
 use super::Key;
 use engine::*;
 
-/// A Chest which can hold one item, and must be unlocked using a key.
+/// A `Chest` can hold one item, and must be unlocked using a `Key`.
 ///
-/// The item inside is an Actor which must either be able to be held in the inventory or stepped
+/// The item inside is an `Actor` which must either be able to be held in the inventory or stepped
 /// on. If it can be held, the item is placed into the opener's inventory, otherwise the step on
 /// event is triggered.
 ///

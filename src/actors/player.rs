@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::cmp::max;
 use engine::*;
 
 /// The `Player` is the character which is controlled by the player.
@@ -39,6 +40,13 @@ impl Actor for Player {
     fn attack_power(&self) -> u32 { 5 }
 
     fn symbol(&self) -> char { '@' }
+
+    fn take_money(&mut self, amount: i32) -> i32 {
+        let money = max(0, self.pd.money.get() - amount);
+        let taken = self.pd.money.get() - money;
+        self.pd.money.set(money);
+        taken
+    }
 
     fn set_money_rel(&mut self, value: i32) {
         self.pd.money.set(self.pd.money.get() + value);

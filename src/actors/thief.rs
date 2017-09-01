@@ -36,29 +36,34 @@ impl Actor for Thief {
         let here = self.get_location();
         let towards_gold = FindAll(|tile| tile.contents().as_ref().map(|a| a.long_name() == Gold::id()).unwrap_or(false))
             .then(move |golds| golds.into_iter()
-                .map(|i| (QueryValue(i), DistanceTo(here, i))).collect::<Vec<_>>())
+                .map(|loc| (QueryValue(loc), DistanceTo(here, loc))).collect::<Vec<_>>())
             .then(|golds|
                 QueryValue(golds.into_iter()
-                    .fold((0 as usize, usize::MAX), |prev, cur| if cur.1 < prev.1 { cur } else { prev })))
-            .then(move |gold| (
-                QueryValue(gold),
+                    .fold((0, usize::MAX), |prev, cur| if cur.1 < prev.1 { cur } else { prev })
+                    .0))
+            .then(move |gold|
                 Direction::cardinals().into_iter()
-                    .map(|dir| NeighbourOf(gold.0, dir).then(move |n| (QueryValue(n), DistanceTo(here, n)))).collect::<Vec<_>>()
-            ))
-            .then(|(gold, mut dists)| {
-                dists.sort_by(|&(_, a), &(_, b)| (a as i32 - gold.1 as i32).cmp(&(b as i32 - gold.1 as i32)));
-                dists.iter()
-                    .map(|loc| QueryValue(loc.0))
+                    .map(move |dir| NeighbourOf(here, dir).then(move |n| (QueryValue(n), DistanceTo(gold, n)))).collect::<Vec<_>>()
+            )
+            .then(|mut dists| {
+                dists.sort_by(|a, b| a.1.cmp(&b.1));
+                dists.into_iter()
+                    .map(|(loc, _)| QueryValue(loc))
                     .collect::<Vec<_>>()
             })
             .then(move |goals| goals.into_iter().map(|goal| DirectionTo(here, goal)).collect::<Vec<_>>());
-        Box::new(ExecQuery(towards_gold, |dirs| {
-            Switch(dirs.into_iter().map(|dir| IfEnterable(dir, Perform(Action::Move(dir)))).collect())
-        }))
+        Box::new(
+            Switch(Direction::cardinals().into_iter().map(|dir| IfAttackable(dir, Perform(Action::Attack(dir)))).collect())
+                .or_else(ExecQuery(towards_gold, |gold| Switch(gold.into_iter().map(|dir| IfEnterable(dir, Perform(Action::Move(dir)))).collect())))
+        )
     }
 
     fn can_be_attacked(&self, other: &Actor) -> bool {
         other.affinity() >= 0
+    }
+    fn attack(&mut self, other: &mut Actor) {
+        let amt = self.attack_power() as i32;
+        self.set_money_rel(other.take_money(amt));
     }
     fn be_attacked(&mut self, other: &mut Actor) {
         self.health -= other.attack_power() as i8;

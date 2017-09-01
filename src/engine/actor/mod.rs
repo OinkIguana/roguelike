@@ -43,8 +43,13 @@ pub trait Actor: ActorClone {
 
     /// The power of this `Actor`'s attacks
     fn attack_power(&self) -> u32 { 0 }
+
+    /// Attempt to take money from this `Actor`. Returns how much money was taken. Should lower the
+    /// amount of money the `Actor` owns
+    fn take_money(&mut self, value: i32) -> i32 { 0 }
     /// An action to perform when money is gained by this `Actor`
     fn set_money_rel(&mut self, value: i32) {}
+
     /// An action to perform when this `Actor`'s health should be changed
     fn set_health_rel(&mut self, amount: i32) {}
     /// An action to perform when an `Actor` picks up another

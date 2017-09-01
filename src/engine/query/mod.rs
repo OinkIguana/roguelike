@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use super::{Tile,Map,Direction};
 
 /// Finds the index of the first `Tile` that matches a predicate. Returns `None` if no `Tile`
@@ -39,11 +40,7 @@ pub struct DistanceTo(pub usize, pub usize);
 impl Query for DistanceTo {
     type R = usize;
     fn exec(&self, map: &Map) -> Option<Self::R> {
-        if self.0 == self.1 {
-            None
-        } else {
-            Some(map.get_distance(self.0, self.1))
-        }
+        Some(map.get_distance(self.0, self.1))
     }
 }
 
@@ -103,6 +100,17 @@ impl<Ra, A> Query for Vec<A> where A: Query<R=Ra> {
     }
 }
 
+pub struct DebugQuery<T>(T);
+impl<Ra, T> Query for DebugQuery<T>
+where   Ra: Debug,
+        T: Query<R=Ra> {
+    type R = T::R;
+    fn exec(&self, map: &Map) -> Option<Self::R> {
+        let res = self.0.exec(map);
+        eprintln!("{:?}", res);
+        res
+    }
+}
 
 /// A `Query` provides encapsulated access to information about the game and `Map`
 pub trait Query {
@@ -116,5 +124,9 @@ pub trait Query {
             F: Fn(Self::R) -> B,
             Self: Query + Sized {
         Then(self, next)
+    }
+
+    fn debug(self) -> DebugQuery<Self> where Self: Sized {
+        DebugQuery(self)
     }
 }

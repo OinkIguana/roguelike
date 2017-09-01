@@ -1,24 +1,23 @@
-mod state;
-mod map;
-mod actor;
-mod behavior;
-mod query;
-mod outputter;
-mod inputter;
-mod messaging;
-mod direction;
-mod one_two;
+pub mod state;
+pub mod map;
+pub mod actor;
+pub mod behavior;
+pub mod query;
+pub mod outputter;
+pub mod inputter;
+pub mod messaging;
+pub mod direction;
+pub mod one_two;
 
-pub use self::outputter::Outputter;
-pub use self::inputter::{Inputter,Action};
-pub use self::state::{BState,PlayerData};
-use self::state::State;
-pub use self::map::{Map,Populator,TileType,Tile,Generator};
-pub use self::actor::Actor;
+pub use self::outputter::*;
+pub use self::inputter::*;
+pub use self::state::*;
+pub use self::map::*;
+pub use self::actor::*;
 pub use self::behavior::*;
 pub use self::query::*;
-pub use self::messaging::{Message,Messenger};
-pub use self::direction::Direction;
+pub use self::messaging::*;
+pub use self::direction::*;
 
 /// The Engine manages the internal behaviour of the game
 pub struct Engine<'a, IO: Inputter + Outputter, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'static> {

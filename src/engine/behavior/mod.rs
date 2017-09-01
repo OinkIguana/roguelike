@@ -1,7 +1,8 @@
 use std::mem::replace;
 use super::{Action,Map,Direction,Query};
 
-/// A Switch tries executing each of the behaviours in the vector, stopping after the first success
+/// A `Switch` tries executing each of the `Behavior`s in the vector, stopping after the first
+/// success. It is considered a success if one of the `Behaviors` is successful.
 pub struct Switch<T: Behavior>(pub Vec<T>);
 impl<T: Behavior> Behavior for Switch<T> {
     fn exec(&self, i: usize, map: &mut Map) -> bool {
@@ -12,8 +13,9 @@ impl<T: Behavior> Behavior for Switch<T> {
     }
 }
 
-/// IfInteractable executes its behavior if the Tile in the given direction has contents which can
-/// be attacked.
+/// `IfInteractable` executes its `Behavior` if the `Tile` in the given direction has contents
+/// which can be attacked. It is considered a success if the `Tile` is attackable and the
+/// `Behavior` executes successfully.
 pub struct IfAttackable<T: Behavior>(pub Direction, pub T);
 impl<T: Behavior> Behavior for IfAttackable<T> {
     fn exec(&self, i: usize, map: &mut Map) -> bool {
@@ -35,8 +37,9 @@ impl<T: Behavior> Behavior for IfAttackable<T> {
     }
 }
 
-/// IfInteractable executes its behavior if the Tile in the given direction has contents which can
-/// be interacted with.
+/// `IfInteractable` executes its `Behavior` if the `Tile` in the given direction has contents which
+/// can be interacted with. It is considered a success if the `Tile` is interactable and the
+/// `Behavior` executes successfully.
 pub struct IfInteractable<T: Behavior>(pub Direction, pub T);
 impl<T: Behavior> Behavior for IfInteractable<T> {
     fn exec(&self, i: usize, map: &mut Map) -> bool {
@@ -58,8 +61,9 @@ impl<T: Behavior> Behavior for IfInteractable<T> {
     }
 }
 
-/// IfOpen executes its Behavior if the Tile in the given direction is open. An open Tile is one
-/// that is of a kind that the current Actor can enter which currently has no contents
+/// `IfOpen` executes its `Behavior` if the `Tile` in the given direction is open. An open `Tile`
+/// is one that is of a kind that the current Actor can enter which currently has no contents. It
+/// is considered a success if the `Tile` is open and the `Behavior` executes successfully.
 pub struct IfOpen<T: Behavior>(pub Direction, pub T);
 impl<T: Behavior> Behavior for IfOpen<T> {
     fn exec(&self, i: usize, map: &mut Map) -> bool {
@@ -76,9 +80,10 @@ impl<T: Behavior> Behavior for IfOpen<T> {
     }
 }
 
-/// IfEnterable executes its Behavior if the Tile in the given direction is enterable. An enterable
-/// Tile is one that is of a kind that the current Actor can enter which contains either no
-/// contents or contents that can be stepped on
+/// `IfEnterable` executes its `Behavior` if the `Tile` in the given direction is enterable. An
+/// enterable `Tile` is one that has a `TileType` that the current `Actor` can enter which contains
+/// either no contents or contents that can be stepped on. It is considered a success if the `Tile`
+/// is enterable and the `Behavior` executes successfully.
 pub struct IfEnterable<T: Behavior>(pub Direction, pub T);
 impl<T: Behavior> Behavior for IfEnterable<T> {
     fn exec(&self, i: usize, map: &mut Map) -> bool {
@@ -91,18 +96,16 @@ impl<T: Behavior> Behavior for IfEnterable<T> {
                     t.contents().clone().map(|a| a.can_be_stepped_on(&*me)).unwrap_or(true))
                 .unwrap_or(false);
             if open {
-                self.1.exec(i, map)
-            } else {
-                false
+                return self.1.exec(i, map);
             }
-        } else {
-            false
         }
+        false
     }
 }
 
-/// ExecQuery executes a Query, then passes the result to the given function which can then create
-/// a behaviour based on the result
+/// `ExecQuery` executes a `Query`, then passes the result to the given function which can then
+/// create a `Behavior` based on the result. It is considered a success if the `Query` and
+/// `Behavior` are both executed successfully.
 pub struct ExecQuery<R, Q, B, F>(pub Q, pub F)
 where   Q: Query<R=R>,
         B: Behavior,
@@ -120,8 +123,8 @@ where   Q: Query<R=R>,
     }
 }
 
-/// Then executes the first behvior and then the second, considering it a success if the second
-/// behavior completes successfully
+/// `Then` executes the first `Behavior` and then the second, considering it a success if the
+/// second `Behavior` completes successfully.
 pub struct Then<T: Behavior, U: Behavior>(T, U);
 impl<T: Behavior, U: Behavior> Behavior for Then<T, U> {
     fn exec(&self, i: usize, map: &mut Map) -> bool {
@@ -130,7 +133,8 @@ impl<T: Behavior, U: Behavior> Behavior for Then<T, U> {
     }
 }
 
-/// OrElse tries to perform the first behavior. If it fails, it will perform the second one instead
+/// `OrElse` tries to perform the first `Behavior`. If it fails, it will perform the second one
+/// instead. It is considered a success if either `Behavior` completes successfully.
 pub struct OrElse<T: Behavior, U: Behavior>(T, U);
 impl<T: Behavior, U: Behavior> Behavior for OrElse<T, U> {
     fn exec(&self, i: usize, map: &mut Map) -> bool {
@@ -138,7 +142,8 @@ impl<T: Behavior, U: Behavior> Behavior for OrElse<T, U> {
     }
 }
 
-/// Perform performs a basic action
+/// `Perform` performs a basic `Action`. It is considered a success if the `Action` is carried out
+/// completely.
 pub struct Perform(pub Action);
 impl Behavior for Perform {
     fn exec(&self, i: usize, map: &mut Map) -> bool {
@@ -217,19 +222,21 @@ impl Behavior for Perform {
     }
 }
 
-/// A Behavior represents the behaviour of an Actor by combining various properties
+/// A `Behavior` represents the behaviour of an `Actor` by combining various properties.
 pub trait Behavior {
-    /// Chains this Behavior with another by a Then
+    /// Chains this `Behavior` with another by a `Then`.
     fn then<U>(self, next: U) -> Then<Self, U>
     where Self: Behavior + Sized, U: Behavior {
         Then(self, next)
     }
 
-    /// Chains this Behavior with another by an OrElse
+    /// Chains this `Behavior` with another by an `OrElse`.
     fn or_else<U>(self, next: U) -> OrElse<Self, U>
     where Self: Behavior + Sized, U: Behavior {
         OrElse(self, next)
     }
 
+    /// Executes this `Behavior`, returning a boolean that indicates whether the `Behavior` was
+    /// completed as expected.
     fn exec(&self, usize, &mut Map) -> bool;
 }

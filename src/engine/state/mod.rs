@@ -1,29 +1,17 @@
+mod player_data;
+
 use std::rc::Rc;
-use std::cell::{Cell,RefCell};
 use std::sync::mpsc::{channel,Receiver};
-use super::{Action,Behavior,Map,Message,Messenger,Generator,Populator,Actor,TileType,Direction};
+use super::{Action,Behavior,Map,Message,Messenger,Generator,Populator,TileType,Direction};
+pub use self::player_data::PlayerData;
 
-pub struct PlayerData {
-    /// The total score accumulated by the player
-    pub score: Cell<i32>,
-    /// The current money owned by the player
-    pub money: Cell<i32>,
-    /// The health of the player, to display on the HUD
-    pub health: Cell<i32>,
-    /// The names of the items in the Player's current inventory
-    pub inventory: RefCell<Vec<Box<Actor>>>,
-}
-
-/// A `State` represents the current state of the game. By serializing the state, the entire game
-/// should be reproducable exactly as it was before.
-pub struct State<'a, G: Generator + 'a, P: Populator, F: Fn(Messenger) -> P + 'a> { // TODO: are all the fields pub?
-    /// Whether the game has been quit by the player
+/// A `State` represents the current state of the game, and contains a few other important pieces
+/// to run the game.
+pub struct State<'a, G: Generator + 'a, P: Populator, F: Fn(Messenger) -> P + 'a> {
+    /// Whether the game has been quit by the player yet
     pub quit: bool,
-    /// The dungeon map
     map: Map,
-    /// The information about the player
     pd: Rc<PlayerData>,
-    /// The current floor of the dungeon the player is on
     level: u32,
     messenger: Messenger,
     receiver: Receiver<Message>,
@@ -31,19 +19,8 @@ pub struct State<'a, G: Generator + 'a, P: Populator, F: Fn(Messenger) -> P + 'a
     populator: &'a F,
 }
 
-impl PlayerData {
-    fn new() -> Self {
-        Self {
-            score: Cell::new(0),
-            money: Cell::new(0),
-            health: Cell::new(100),
-            inventory: RefCell::new(vec![]),
-        }
-    }
-}
-
-/// A `BState` is a more basic representation of a state, which is what gets passed to the
-/// Outputter
+/// A `BState` is a more basic representation of a `State`, which is what gets passed to the
+/// `Outputter`
 #[derive(Clone)]
 pub struct BState {
     pub map: Map,
@@ -55,7 +32,7 @@ pub struct BState {
 }
 
 impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P, F> {
-    /// Creates the initial state
+    /// Creates the initial `State`
     pub fn new(generator: &'a G, populator: &'a F) -> Self {
         let (sender, receiver) = channel();
         let messenger = Messenger::new(sender);
@@ -74,14 +51,13 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
         state.process_all(vec![])
     }
 
-    /// Sets the quit field of the State
-    pub fn quit(mut self) -> Self {
-        self.quit = true;
-        self
+    /// Sets the quit field of the `State`
+    pub fn quit(self) -> Self {
+        Self{ quit: true, ..self }
     }
 
-    /// Takes an Action and the previous state and produces the next state
-    /// kind of like a flux reducer...
+    /// Takes an `Action` and the previous `State` and produces the next `State`,
+    /// kind of like a flux reducer.
     pub fn process(self, action: Action) -> Self {
         match action {
             Action::Quit    => self.quit(),
@@ -161,6 +137,7 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
         }
     }
 
+    /// Creates the simplified `BState` for this `State`
     pub fn simplify(&self) -> BState {
         BState{
             map: self.map.clone(),

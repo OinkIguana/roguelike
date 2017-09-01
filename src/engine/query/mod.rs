@@ -1,6 +1,7 @@
 use super::{Tile,Map,Direction};
 
-/// Finds the index of the first tile that matches a predicate
+/// Finds the index of the first `Tile` that matches a predicate. Returns `None` if no `Tile`
+/// matches.
 pub struct Find<F: Fn(&Tile) -> bool>(pub F);
 impl<F: Fn(&Tile) -> bool> Query for Find<F> {
     type R = usize;
@@ -10,7 +11,7 @@ impl<F: Fn(&Tile) -> bool> Query for Find<F> {
 }
 
 /// Calculates the direction from the first point to the second, both represented by their
-/// cell indices
+/// tile indices.
 pub struct DirectionTo(pub usize, pub usize);
 impl Query for DirectionTo {
     type R = Direction;
@@ -23,7 +24,7 @@ impl Query for DirectionTo {
     }
 }
 
-/// Calculates the distance between two points on the map, represented by their cell indices
+/// Calculates the distance between two points on the `Map`, represented by their tile indices
 pub struct DistanceTo(pub usize, pub usize);
 impl Query for DistanceTo {
     type R = usize;
@@ -36,7 +37,7 @@ impl Query for DistanceTo {
     }
 }
 
-/// Executes one query, then maps its value to another query
+/// Executes one `Query`, then maps its value to another `Query`
 pub struct Then<Ra, Rb, A, B, F>(A, F)
 where   A: Query<R=Ra>,
         B: Query<R=Rb>,
@@ -51,7 +52,7 @@ where   A: Query<R=Ra>,
     }
 }
 
-/// Executes two queries, returning either the results of both, or neither
+/// Executes two `Query`s, returning either the results of both or neither.
 impl<Ra, Rb, A, B> Query for (A, B)
 where   A: Query<R=Ra>,
         B: Query<R=Rb> {
@@ -61,13 +62,13 @@ where   A: Query<R=Ra>,
     }
 }
 
-/// A Query provides encapsulated access to information about the game Map
+/// A `Query` provides encapsulated access to information about the game and `Map`
 pub trait Query {
     type R;
-    /// Executes the Query, returning the result if the query was executed successfully
+    /// Executes the `Query`, returning the result if the `Query` was executed successfully
     fn exec(&self, map: &Map) -> Option<Self::R>;
 
-    /// Chains this Query to another one using a Then
+    /// Chains this `Query` to another one using a `Then`
     fn then<Rb, B, F>(self, next: F) -> Then<Self::R, Rb, Self, B, F>
     where   B: Query<R=Rb>,
             F: Fn(Self::R) -> B,

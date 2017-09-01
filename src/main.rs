@@ -1,11 +1,11 @@
 extern crate rand;
 extern crate pancurses;
 
-mod engine;
-mod populator;
-mod generator;
-mod curses;
-mod actors;
+pub mod engine;
+pub mod populator;
+pub mod generator;
+pub mod curses;
+pub mod actors;
 
 use pancurses::{initscr,endwin,noecho,curs_set};
 

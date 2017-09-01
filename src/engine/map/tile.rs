@@ -1,43 +1,9 @@
 use std::fmt::{Display,Formatter,Result};
 use super::super::{Action,Actor,Behavior,Perform};
+use super::tile_type::TileType;
 
-/// A TileType determines the geography of each tile
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
-pub enum TileType {
-    Floor,
-    Wall,
-    Hall,
-    Door,
-    Empty,
-}
-
-impl TileType {
-    /// The symbol that represents this TileType
-    ///
-    /// *   `Floor` → `.`
-    /// *   `Wall`  → `|`
-    /// *   `Hall`  → `#`
-    /// *   `Door`  → `+`
-    /// *   `Empty` → ` `
-    fn symbol(&self) -> char {
-        match *self {
-            TileType::Floor => '.',
-            TileType::Wall  => '|',
-            TileType::Hall  => '#',
-            TileType::Door  => '+',
-            TileType::Empty => ' ',
-        }
-    }
-}
-
-impl Display for TileType {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{}", self.symbol())
-    }
-}
-
-/// A Tile represents one space in the dungeon. It can have one of a few types, and can
-/// optionally hold one Actor
+/// A `Tile` represents one space in the dungeon. It can have one of a few types, and can
+/// optionally hold one `Actor`
 #[derive(Clone)]
 pub struct Tile {
     kind: TileType,
@@ -51,12 +17,12 @@ impl Tile {
     pub fn new(kind: TileType, location: usize, foggy: bool) -> Tile {
         Tile{ kind, location, contents: None, foggy }
     }
-    /// Produces a new Tile with the kind changed
+    /// Produces a new `Tile` with the kind changed
     pub fn set_kind(self, kind: TileType) -> Self {
         Tile{ kind, ..self }
     }
 
-    /// Move this Cell's contents to the provided cell, destroying what was there
+    /// Move this `Tile`'s contents to the provided `Tile`, destroying what was there
     pub fn move_to(self, tile: Tile) -> (Tile, Tile) {
         match self.contents {
             Some(mut actor) => {
@@ -70,17 +36,18 @@ impl Tile {
         }
     }
 
-    /// Destroys the Cell's contents
+    /// Destroys the `Tile`'s contents
     pub fn empty(&mut self) {
         self.contents = None;
     }
 
+    /// Sets this `Tile`'s contents to the provided `Actor`. Destroys any existing contents
     pub fn fill(&mut self, mut actor: Box<Actor>) {
         actor.set_location(self.location);
         self.contents = Some(actor);
     }
 
-    /// Determines what symbol should be displayed for this tile, taking into account its contents
+    /// Determines what symbol should be displayed for this `Tile`, taking into account its contents
     pub fn symbol(&self) -> char {
         if self.foggy() {
             ' '
@@ -89,19 +56,22 @@ impl Tile {
         }
     }
 
-    /// Determines what symbol should be displayed for this tile when it is empty
+    /// Determines what symbol should be displayed for this `Tile` when it is empty
     pub fn empty_symbol(&self) -> char {
         self.kind.symbol()
     }
 
+    /// Have this `Tile`'s contents process the given `Action`
     pub fn process(&self, action: Action) -> Box<Behavior> {
         self.contents.as_ref().map_or(Box::new(Perform(Action::Idle)), |ref c| c.react(action))
     }
 
+    /// The contents of this `Tile`, if any
     pub fn contents(&self) -> &Option<Box<Actor>> {
         &self.contents
     }
 
+    /// Whether this `Tile` is able to hold contents
     pub fn can_hold_contents(&self) -> bool {
         match self.kind {
             TileType::Floor | TileType::Hall | TileType::Door => true,
@@ -109,14 +79,17 @@ impl Tile {
         }
     }
 
+    /// Reveals this `Tile` if playing in foggy mode.
     pub fn reveal(&mut self) {
         self.foggy = false;
     }
 
+    /// The `TileType` of this `Tile`
     pub fn kind(&self) -> TileType {
         self.kind
     }
 
+    /// Whether this `Tile` is currently foggy
     pub fn foggy(&self) -> bool {
         self.foggy
     }

@@ -1,6 +1,13 @@
 use super::Key;
 use engine::*;
 
+/// A Chest which can hold one item, and must be unlocked using a key.
+///
+/// The item inside is an Actor which must either be able to be held in the inventory or stepped
+/// on. If it can be held, the item is placed into the opener's inventory, otherwise the step on
+/// event is triggered.
+///
+/// Symbol: `C` full, `c` empty
 #[derive(Clone)]
 pub struct Chest<T> where T: Actor {
     contents: Option<T>,

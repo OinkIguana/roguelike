@@ -1,5 +1,5 @@
 use rand::{thread_rng,Rng};
-use engine::{Actor,Action,Behavior,Direction,Perform,IfAttackable,IfOpen,Switch,Messenger,Message};
+use engine::*;
 use super::Gold;
 
 /// A Bat is the most simple enemy, which moves around randomly, attacking the Player if it happens

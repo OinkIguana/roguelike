@@ -1,5 +1,8 @@
 use engine::*;
 
+/// A key is used to open a chest. Each key is single use.
+///
+/// Symbol: `K`
 #[derive(Clone)]
 pub struct Key;
 impl Key {

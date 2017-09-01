@@ -18,7 +18,7 @@ use super::Gold;
 ///
 /// Drops:
 ///
-/// *   Gold x 3
+/// *   3x Gold
 #[derive(Clone)]
 pub struct Goblin {
     health: i8,

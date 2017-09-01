@@ -23,7 +23,7 @@ impl<T: Behavior> Behavior for IfAttackable<T> {
             let attackable = map
                 .get_neighbouring_tile_index(i, self.0)
                 .map(|n| &map.tiles[n])
-                .and_then(|t| t.contents().clone())
+                .and_then(|t| t.contents().as_ref())
                 .map(|a| a.can_be_attacked(&*me))
                 .unwrap_or(false);
             if attackable {
@@ -47,7 +47,7 @@ impl<T: Behavior> Behavior for IfInteractable<T> {
             let interactable = map
                 .get_neighbouring_tile_index(i, self.0)
                 .map(|n| &map.tiles[n])
-                .and_then(|t| t.contents().clone())
+                .and_then(|t| t.contents().as_ref())
                 .map(|a| a.can_be_interacted_with(&*me))
                 .unwrap_or(false);
             if interactable {
@@ -62,7 +62,7 @@ impl<T: Behavior> Behavior for IfInteractable<T> {
 }
 
 /// `IfOpen` executes its `Behavior` if the `Tile` in the given direction is open. An open `Tile`
-/// is one that is of a kind that the current Actor can enter which currently has no contents. It
+/// is one that is of a kind that the current `Actor` can enter which currently has no contents. It
 /// is considered a success if the `Tile` is open and the `Behavior` executes successfully.
 pub struct IfOpen<T: Behavior>(pub Direction, pub T);
 impl<T: Behavior> Behavior for IfOpen<T> {
@@ -70,7 +70,7 @@ impl<T: Behavior> Behavior for IfOpen<T> {
         let open = map
             .get_neighbouring_tile_index(i, self.0)
             .map(|n| &map.tiles[n])
-            .map(|t| map.tiles[i].contents().clone().map(|a| a.can_enter(t.kind())).unwrap_or(false) && t.contents().is_none())
+            .map(|t| map.tiles[i].contents().as_ref().map(|a| a.can_enter(t.kind())).unwrap_or(false) && t.contents().is_none())
             .unwrap_or(false);
         if open {
             self.1.exec(i, map)
@@ -92,8 +92,8 @@ impl<T: Behavior> Behavior for IfEnterable<T> {
                 .get_neighbouring_tile_index(i, self.0)
                 .map(|n| &map.tiles[n])
                 .map(|t|
-                    map.tiles[i].contents().clone().map(|a| a.can_enter(t.kind())).unwrap_or(false) &&
-                    t.contents().clone().map(|a| a.can_be_stepped_on(&*me)).unwrap_or(true))
+                    map.tiles[i].contents().as_ref().map(|a| a.can_enter(t.kind())).unwrap_or(false) &&
+                    t.contents().as_ref().map(|a| a.can_be_stepped_on(&*me)).unwrap_or(true))
                 .unwrap_or(false);
             if open {
                 return self.1.exec(i, map);

@@ -3,6 +3,10 @@ mod tile_type;
 mod generator;
 mod populator;
 
+use std::usize;
+use std::cmp::min;
+use std::collections::HashMap;
+use std::cell::RefCell;
 use rand::{thread_rng,Rng};
 use super::{Action,Actor,Behavior,Direction};
 pub use self::generator::Generator;
@@ -10,13 +14,13 @@ pub use self::populator::Populator;
 pub use self::tile::Tile;
 pub use self::tile_type::TileType;
 
-
 /// A `Map` contains `Tile`s in a grid, which make up the whole dungeon
 #[derive(Clone)]
 pub struct Map {
     pub tiles: Vec<Tile>,
     pub width: usize,
     pub height: usize,
+    distances: RefCell<HashMap<usize, Vec<usize>>>,
 }
 
 const GROWTH_FACTOR: f32 = 1.5;
@@ -27,8 +31,13 @@ impl Map {
         (index % self.width, index / self.width)
     }
 
+    /// Instantiates a new `Map`
+    pub fn new(tiles: Vec<Tile>, width: usize, height: usize) -> Self {
+        Self{ tiles, width, height, distances: RefCell::new(HashMap::new()) }
+    }
+
     /// Creates a new `Map` with the provided dimensions
-    pub fn new<T: Generator>(complexity: u32, generator: &T) -> Map {
+    pub fn create<T: Generator>(complexity: u32, generator: &T) -> Self {
         let height: usize = (MIN_HEIGHT + GROWTH_FACTOR * complexity as f32).round() as usize;
         let width: usize = (1.618 * height as f32 * 2.0).round() as usize;
         generator.generate(complexity, width, height)
@@ -112,10 +121,32 @@ impl Map {
         Direction::between(f, t)
     }
 
-    /// Determines the distance between two points on the `Map`
+    /// Determines the walking distance between two points on the `Map`
     pub fn get_distance(&self, from: usize, to: usize) -> usize {
-        let f = self.split_coordinate(from);
-        let t = self.split_coordinate(to);
-        ((f.0 as i32 - t.0 as i32).abs() + (f.1 as i32 - t.1 as i32).abs()) as usize
+        let mut dists = self.distances.borrow_mut();
+        if dists.contains_key(&from) {
+            dists.get(&from).unwrap()[to]
+        } else if dists.contains_key(&to) {
+            dists.get(&to).unwrap()[from]
+        } else {
+            let mut distances = vec![usize::MAX; self.tiles.len()];
+            distances[from] = 0;
+            self.calc_distance(&mut distances, from);
+            dists.insert(from, distances);
+            dists.get(&from).unwrap()[to]
+        }
+    }
+
+    fn calc_distance(&self, distances: &mut Vec<usize>, from: usize) {
+        use self::TileType::*;
+        for n in Direction::cardinals().into_iter().filter_map(|dir| self.get_neighbouring_tile_index(from, dir)) {
+            if self.tiles[n].kind() == Hall || self.tiles[n].kind() == Floor || self.tiles[n].kind() == Door {
+                let dist = min(distances[n], distances[from] + 1);
+                if dist != distances[n] {
+                    distances[n] = dist;
+                    self.calc_distance(distances, n);
+                }
+            }
+        }
     }
 }

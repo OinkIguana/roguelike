@@ -12,7 +12,7 @@ use super::Gold;
 /// Stats:
 ///
 /// *   Health - 15
-/// *   Attack - 2
+/// *   Attack - 1
 /// *   Defense - 0
 ///
 /// Drops:
@@ -49,7 +49,7 @@ impl Actor for Bat {
             self.messenger.send(Message::Drop(self.get_location(), Box::new(Gold::new(1))));
         }
     }
-    fn attack_power(&self) -> u32 { 2 }
+    fn attack_power(&self) -> u32 { 1 }
 
     fn symbol(&self) -> char { 'B' }
     fn affinity(&self) -> i8 { -1 }

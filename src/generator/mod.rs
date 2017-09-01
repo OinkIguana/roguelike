@@ -23,7 +23,7 @@ impl Generator for Standard {
         let rooms_and_halls = add_halls(rooms, halls);
         let trimmed = trim_halls(rooms_and_halls);
         let tiles = add_walls(trimmed);
-        Map{ tiles: tiles.grid, width, height }
+        Map::new(tiles.grid, width, height)
     }
 }
 
@@ -47,7 +47,7 @@ impl Generator for Foggy {
         let rooms_and_halls = add_halls(rooms, halls);
         let trimmed = trim_halls(rooms_and_halls);
         let tiles = add_walls(trimmed);
-        Map{ tiles: tiles.grid, width, height }
+        Map::new(tiles.grid, width, height)
     }
 }
 

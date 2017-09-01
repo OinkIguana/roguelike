@@ -7,6 +7,7 @@ mod fountain;
 mod potion;
 mod chest;
 mod key;
+mod thief;
 
 pub use self::player::Player;
 pub use self::bat::Bat;
@@ -17,3 +18,4 @@ pub use self::fountain::Fountain;
 pub use self::potion::Potion;
 pub use self::chest::Chest;
 pub use self::key::Key;
+pub use self::thief::Thief;

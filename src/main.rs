@@ -20,7 +20,7 @@ fn main() {
     window.keypad(true);
     let mut e = engine::Engine::new(
         display,
-        generator::Foggy,
+        generator::Standard,
         &populator,
     );
     e.run();

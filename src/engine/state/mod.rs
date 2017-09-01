@@ -37,7 +37,7 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
         let (sender, receiver) = channel();
         let messenger = Messenger::new(sender);
         let pd = Rc::new(PlayerData::new());
-        let map = populator(messenger.clone()).populate(Map::new(1, generator), pd.clone());
+        let map = populator(messenger.clone()).populate(Map::create(1, generator), pd.clone());
         let state = Self{
             map,
             level: 0,
@@ -82,7 +82,7 @@ impl<'a, G: Generator, P: Populator, F: Fn(Messenger) -> P + 'a> State<'a, G, P,
         match message {
             Message::LevelEnd => {
                 self.level += 1;
-                self.map = (self.populator)(self.messenger.clone()).populate(Map::new(self.level, self.generator), self.pd.clone());
+                self.map = (self.populator)(self.messenger.clone()).populate(Map::create(self.level, self.generator), self.pd.clone());
             }
             Message::Die(i) => {
                 self.map.tiles[i].empty();

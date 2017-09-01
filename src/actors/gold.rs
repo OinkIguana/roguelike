@@ -10,6 +10,8 @@ impl Gold {
     pub fn new(value: i32) -> Gold {
         Gold{ value }
     }
+
+    pub fn id() -> &'static str { "Gold" }
 }
 
 impl Actor for Gold {
@@ -18,4 +20,6 @@ impl Actor for Gold {
         other.set_money_rel(self.value);
     }
     fn symbol(&self) -> char { 'G' }
+
+    fn long_name(&self) -> &str { Gold::id() }
 }

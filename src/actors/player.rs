@@ -14,6 +14,9 @@ impl Player {
     pub fn new(messenger: Messenger, pd: Rc<PlayerData>) -> Player {
         Player{ messenger, pd, location: 0, }
     }
+    pub fn id() -> &'static str {
+        "Player"
+    }
 }
 
 impl Actor for Player {
@@ -75,5 +78,9 @@ impl Actor for Player {
     }
     fn set_location(&mut self, loc: usize) {
         self.location = loc;
+    }
+
+    fn long_name(&self) -> &str {
+        Player::id()
     }
 }

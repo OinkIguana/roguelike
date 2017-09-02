@@ -103,6 +103,34 @@ impl<T: Behavior> Behavior for IfEnterable<T> {
     }
 }
 
+/// Executes a `Query`, then depending on the result of the provided predicate, performs the
+/// corresponding `Behavior`. It is considered a success if the `Query` and the executed `Behavior`
+/// are both successful.
+pub struct IfQuery<Ra, Q, P, BT, BF, T, F>(pub Q, pub P, pub T, pub F)
+where   Q: Query<R=Ra>,
+        P: Fn(&Ra) -> bool,
+        BT: Behavior,
+        BF: Behavior,
+        T: Fn(Ra) -> BT,
+        F: Fn(Ra) -> BF;
+impl<Ra, Q, P, BT, BF, T, F> Behavior for IfQuery<Ra, Q, P, BT, BF, T, F>
+where   Q: Query<R=Ra>,
+        P: Fn(&Ra) -> bool,
+        BT: Behavior,
+        BF: Behavior,
+        T: Fn(Ra) -> BT,
+        F: Fn(Ra) -> BF {
+    fn exec(&self, i: usize, map: &mut Map) -> bool {
+        self.0.exec(map).map(|ra|
+            if (self.1)(&ra) {
+                (self.2)(ra).exec(i, map)
+            } else {
+                (self.3)(ra).exec(i, map)
+            }
+        ).unwrap_or(false)
+    }
+}
+
 /// `ExecQuery` executes a `Query`, then passes the result to the given function which can then
 /// create a `Behavior` based on the result. It is considered a success if the `Query` and
 /// `Behavior` are both executed successfully.

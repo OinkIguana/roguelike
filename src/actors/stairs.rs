@@ -12,6 +12,9 @@ impl Stairs {
     pub fn new(messenger: Messenger) -> Stairs {
         Stairs{ messenger }
     }
+    pub fn id() -> &'static str {
+        "Stairs"
+    }
 }
 
 impl Actor for Stairs {
@@ -20,4 +23,5 @@ impl Actor for Stairs {
         self.messenger.send(Message::LevelEnd);
     }
     fn symbol(&self) -> char { '/' }
+    fn long_name(&self) -> &str { Stairs::id() }
 }

@@ -1,4 +1,5 @@
 use engine::Actor;
+use super::Player;
 
 /// A `Potion` can be picked up by certain characters by stepping on it. Using a `Potion` consumes
 /// it to restore 25 health.
@@ -8,7 +9,7 @@ use engine::Actor;
 pub struct Potion;
 
 impl Actor for Potion {
-    fn can_be_stepped_on(&self, _: &Actor) -> bool { true }
+    fn can_be_stepped_on(&self, other: &Actor) -> bool { other.long_name() == Player::id() }
     fn be_stepped_on(&mut self, other: &mut Actor) {
         other.pick_up(Box::new(self.clone()));
     }
